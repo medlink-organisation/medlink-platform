@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+         http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Parent MedLink -->
+    <parent>
+        <groupId>medlink.project</groupId>
+        <artifactId>medlink-platform</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>auth-service</artifactId>
+
+    <name>auth-service</name>
+    <description>MedLink Authentication Service</description>
+
+
+    <dependencies>
+
+        <!-- ============================= -->
+        <!-- WEB / REST -->
+        <!-- ============================= -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+
+        <!-- ============================= -->
+        <!-- SECURITY / JWT -->
+        <!-- ============================= -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>
+                spring-boot-starter-security-oauth2-resource-server
+            </artifactId>
+        </dependency>
+
+
+        <!-- ============================= -->
+        <!-- gRPC SERVER -->
+        <!-- ============================= -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-grpc-server</artifactId>
+        </dependency>
+
+
+        <!-- Contrat gRPC partagé -->
+        <dependency>
+            <groupId>medlink.project</groupId>
+            <artifactId>grpc-contracts</artifactId>
+        </dependency>
+
+
+        <!-- ============================= -->
+        <!-- SPRING CLOUD CONFIG -->
+        <!-- ============================= -->
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+
+        <!-- ============================= -->
+        <!-- EUREKA -->
+        <!-- ============================= -->
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>
+                spring-cloud-starter-netflix-eureka-client
+            </artifactId>
+        </dependency>
+
+
+        <!-- ============================= -->
+        <!-- CIRCUIT BREAKER -->
+        <!-- ============================= -->
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>
+                spring-cloud-starter-circuitbreaker-resilience4j
+            </artifactId>
+        </dependency>
+
+
+        <!-- ============================= -->
+        <!-- OBSERVABILITY -->
+        <!-- ============================= -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-vault-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+
+        <!-- ============================= -->
+        <!-- TEST -->
+        <!-- ============================= -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-grpc-server-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>
+                spring-boot-starter-security-oauth2-resource-server-test
+            </artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+</project>

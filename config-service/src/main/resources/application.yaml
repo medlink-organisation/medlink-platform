@@ -1,0 +1,29 @@
+
+spring:
+
+  application:
+    name: config-service
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_REPOS}
+
+          default-label: main
+    discovery:
+      enabled: true
+server:
+  port: 8899
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DISOVVERY_SERVICE_URL}
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true

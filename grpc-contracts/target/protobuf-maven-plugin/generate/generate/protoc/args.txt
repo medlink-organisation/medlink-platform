@@ -1,0 +1,8 @@
+--java_out=/home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/generated-sources/protobuf
+--plugin=protoc-gen-0_c013431096e6e4ede9be7999ddd71bc753fdf55c=/home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/protobuf-maven-plugin/generate/generate/artifacts/protoc-gen-grpc-java-797498303bcffbceee3446fb88230512eac63086.exe
+--0_c013431096e6e4ede9be7999ddd71bc753fdf55c_out=/home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/generated-sources/protobuf
+--0_c013431096e6e4ede9be7999ddd71bc753fdf55c_opt=@generated=omit
+/home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/auth_service.proto
+--proto_path=/home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto
+--proto_path=/home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/protobuf-maven-plugin/generate/generate/archives/protobuf-java-4.36.2-dbab07719d0b58b8c40d7dfb039ee8d0458a7bd2
+--proto_path=/home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/protobuf-maven-plugin/generate/generate/archives/proto-google-common-protos-2.64.1-d8aad63932e22c248cb59c300465ba2852f99588
