@@ -48,17 +48,47 @@
     </dependencies>
 
 
+
     <build>
-
         <plugins>
-
             <plugin>
                 <groupId>io.github.ascopes</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
+
+                <configuration>
+
+                    <!-- Dossier contenant les fichiers .proto -->
+                    <sourceDirectories>
+                        <sourceDirectory>
+                            ${project.basedir}/src/main/proto
+                        </sourceDirectory>
+                    </sourceDirectories>
+
+                    <!-- Compilateur Protobuf -->
+                    <protoc kind="binary-maven">
+                        <version>${protobuf-java.version}</version>
+                    </protoc>
+
+                    <!-- Générateur gRPC Java -->
+                    <plugins>
+                        <plugin kind="binary-maven">
+                            <groupId>io.grpc</groupId>
+                            <artifactId>protoc-gen-grpc-java</artifactId>
+                        </plugin>
+                    </plugins>
+
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
-
         </plugins>
-
     </build>
+
 
 </project>

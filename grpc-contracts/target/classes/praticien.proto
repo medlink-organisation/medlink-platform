@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package medlink.praticien.v1;
+
+option java_multiple_files = true;
+option java_package = "medlink.grpc.praticien.v1";
+option java_outer_classname = "PraticienProto";
+
+service PraticienGrpcService {
+
+  rpc CreatePraticien(CreatePraticienGrpcRequest)
+      returns (PraticienGrpcResponse);
+
+  rpc GetPraticienByKeycloakId(GetPraticienByKeycloakIdRequest)
+      returns (PraticienGrpcResponse);
+}
+
+message CreatePraticienGrpcRequest {
+  string keycloak_id = 1;
+  string nom = 2;
+  string prenom = 3;
+  string email = 4;
+  string phone = 5;
+  string numero_ordre = 6;
+  int64 specialite_id = 7;
+}
+
+message GetPraticienByKeycloakIdRequest {
+  string keycloak_id = 1;
+}
+
+message PraticienGrpcResponse {
+  int64 id = 1;
+  string keycloak_id = 2;
+  string nom = 3;
+  string prenom = 4;
+  string email = 5;
+  string phone = 6;
+  string numero_ordre = 7;
+  int64 specialite_id = 8;
+  bool actif = 9;
+}

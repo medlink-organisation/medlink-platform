@@ -1,16 +1,38 @@
 spring:
   application:
     name: gateway-service
+
   main:
     web-application-type: reactive
     allow-bean-definition-overriding: true
 
   config:
-    import: optional:configserver:${CONFIG_SERVICE_URL:http://localhost:9999}
+    import:
+      - "optional:configserver:${CONFIG_SERVICE_URL:http://localhost:8899}"
+      - "vault:///secret/data/gateway-service"
 
   cloud:
-    config:
-      enabled: true
-      label: main
-server:
-  port: 8876
+
+    vault:
+      uri: ${VAULT_URI}
+      authentication: APPROLE
+      app-role:
+        role-id: ${GATEWAY_VAULT_ROLE_ID}
+        secret-id: ${GATEWAY_VAULT_SECRET_ID}
+      kv:
+        enabled: true
+        backend: secret
+        backend-version: 2
+
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+
+
+
+
+

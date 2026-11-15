@@ -2,7 +2,9 @@ package medlink.project.directoyservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.envers.Audited;
 
+@Audited
 @Getter
 @Setter
 @Entity

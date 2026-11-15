@@ -77,6 +77,6 @@
       "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/protobuf-maven-plugin/generate/generate/archives/protobuf-java-4.36.2-dbab07719d0b58b8c40d7dfb039ee8d0458a7bd2/google/protobuf/field_mask.proto": "09ade29169350f0356daa5f173506e3db3c847af52f556db12456720ba82b4c60978e89fd50352110c33bba8544cc5d51b5a8c697a5a460d3d79573a091f9218",
       "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/protobuf-maven-plugin/generate/generate/archives/proto-google-common-protos-2.64.1-d8aad63932e22c248cb59c300465ba2852f99588/google/api/billing.proto": "cb641ff6b59ffb72956e5a7ca409dbe97caa6f75e4e6f1bcbee05f87accfa4e72c37b549d9354220d4a42d3145f7557550396142a6a6aabb5a9759d2b41ed504"
     },
-    "proto_sources": {"file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/auth_service.proto": "42be3a85a2f1d8463239d8a81561ae9f56360f1830af72c894c0c99ff4fc6400dc8e5bfd3d525f8d829c7c9b8e881a732af6d7b9c19b63cb9d9b1048f95579d6"},
+    "proto_sources": {"file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/praticien.proto": "61e58c778bdfa5070ca5d2b78c40df6570364d36e3ec4115012f00a12b8c28541a574b146055e4e517bde560ec750723acd94329716528c04ba098e705a67cb8"},
     "descriptor_files": {}
   }

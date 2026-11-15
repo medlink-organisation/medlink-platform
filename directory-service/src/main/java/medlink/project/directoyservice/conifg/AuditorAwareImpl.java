@@ -1,5 +1,4 @@
-package medlink.project.directoyservice.config;
-
+package  medlink.project.directoyservice.conifg;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

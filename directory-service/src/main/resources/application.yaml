@@ -1,5 +1,25 @@
+
 spring:
   application:
     name: directory-service
+
   config:
-    import: optional:configserver:${CONFIG_SERVER_URL}
+    import:
+      - "optional:configserver:${CONFIG_SERVICE_URL:}"
+      - "vault:///secret/data/directory-service"
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE}
+
+  cloud:
+    vault:
+      uri: ${VAULT_URI}
+      authentication: APPROLE
+
+      app-role:
+        role-id: ${GATEWAY_VAULT_ROLE_ID}
+        secret-id: ${GATEWAY_VAULT_SECRET_ID}
+
+      kv:
+        enabled: true
+        backend: secret
+        backend-version: 2

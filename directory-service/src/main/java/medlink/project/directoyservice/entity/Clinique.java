@@ -2,10 +2,11 @@ package medlink.project.directoyservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Audited
 @Entity
 @Getter
 @Setter

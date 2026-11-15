@@ -1,11 +1,14 @@
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:21-jre-noble
 
 WORKDIR /app
 
-VOLUME /tmp
+RUN groupadd --system spring && \
+    useradd --system --gid spring --home-dir /app spring
 
-COPY target/*.jar app.jar
+COPY --chown=spring:spring target/*.jar app.jar
 
-EXPOSE 8092
+USER spring:spring
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+EXPOSE 8761
+
+ENTRYPOINT ["java", "-XX:+ExitOnOutOfMemoryError", "-jar", "/app/app.jar"]
