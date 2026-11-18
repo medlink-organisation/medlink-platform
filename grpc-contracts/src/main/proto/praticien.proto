@@ -13,6 +13,11 @@ service PraticienGrpcService {
 
   rpc GetPraticienByKeycloakId(GetPraticienByKeycloakIdRequest)
       returns (PraticienGrpcResponse);
+  rpc GetPraticienById(GetPraticienByIdRequest)
+      returns (PraticienGrpcResponse);
+
+  rpc ExistsActivePraticien(ExistsActivePraticienRequest)
+      returns (ExistsActivePraticienResponse);
 }
 
 message CreatePraticienGrpcRequest {
@@ -28,7 +33,17 @@ message CreatePraticienGrpcRequest {
 message GetPraticienByKeycloakIdRequest {
   string keycloak_id = 1;
 }
+message GetPraticienByIdRequest {
+  int64 praticien_id = 1;
+}
 
+message ExistsActivePraticienRequest {
+  int64 praticien_id = 1;
+}
+
+message ExistsActivePraticienResponse {
+  bool exists_and_active = 1;
+}
 message PraticienGrpcResponse {
   int64 id = 1;
   string keycloak_id = 2;

@@ -63,7 +63,6 @@ public class PraticienValidator {
 
         Praticien praticien = validateExists(id);
 
-        // Le KeycloakId ne doit jamais être modifié
         if (dto.getKeycloakId() != null &&
                 !dto.getKeycloakId().equals(praticien.getKeycloakId())) {
 

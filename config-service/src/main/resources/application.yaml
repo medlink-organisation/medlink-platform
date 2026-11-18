@@ -10,8 +10,17 @@ spring:
           uri: ${CONFIG_REPOS}
 
           default-label: main
+          clone-on-start: true
+        monitor:
+          github:
+            webhook-secret: ${GITHUB_WEBHOOK_SECRET}
     discovery:
       enabled: true
+    stream:
+      kafka:
+        binder:
+          brokers:
+            -kafk:9092
 server:
   port: 8899
 

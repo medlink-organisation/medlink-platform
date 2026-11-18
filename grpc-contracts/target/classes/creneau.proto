@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package medilink.v1;
+
+option java_multiple_files = true;
+option java_package = "medlink.project.grpc.creneau";
+
+import "google/protobuf/timestamp.proto";
+
+service CreneauGrpcService {
+  rpc GetCreneau(GetCreneauRequest)
+      returns (CreneauResponse);
+
+  rpc CheckAvailability(CheckAvailabilityRequest)
+      returns (CheckAvailabilityResponse);
+
+  rpc ReserveCreneau(ReserveCreneauRequest)
+      returns (CreneauResponse);
+
+  rpc ReleaseCreneau(ReleaseCreneauRequest)
+      returns (CreneauResponse);
+}
+
+enum CreneauStatus {
+  CRENEAU_STATUS_UNSPECIFIED = 0;
+  CRENEAU_AVAILABLE = 1;
+  CRENEAU_RESERVED = 2;
+  CRENEAU_BLOCKED = 3;
+}
+
+message GetCreneauRequest {
+  int64 creneau_id = 1;
+}
+
+message CheckAvailabilityRequest {
+  int64 creneau_id = 1;
+}
+
+message CheckAvailabilityResponse {
+  int64 creneau_id = 1;
+  bool available = 2;
+  CreneauStatus status = 3;
+}
+
+message ReserveCreneauRequest {
+  int64 creneau_id = 1;
+  int64 rendez_vous_id = 2;
+  string idempotency_key = 3;
+}
+
+message ReleaseCreneauRequest {
+  int64 creneau_id = 1;
+  int64 rendez_vous_id = 2;
+  string idempotency_key = 3;
+}
+
+message CreneauResponse {
+  int64 id = 1;
+  int64 praticien_id = 2;
+  int64 clinique_id = 3;
+  google.protobuf.Timestamp start_at = 4;
+  google.protobuf.Timestamp end_at = 5;
+  CreneauStatus status = 6;
+  int64 version = 7;
+}

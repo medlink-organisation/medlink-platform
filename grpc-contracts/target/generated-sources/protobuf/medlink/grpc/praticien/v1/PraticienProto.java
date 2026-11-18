@@ -37,6 +37,21 @@ public final class PraticienProto extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_medlink_praticien_v1_GetPraticienByKeycloakIdRequest_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_medlink_praticien_v1_GetPraticienByIdRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_medlink_praticien_v1_GetPraticienByIdRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_medlink_praticien_v1_ExistsActivePraticienRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_medlink_praticien_v1_ExistsActivePraticienRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_medlink_praticien_v1_ExistsActivePraticienResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_medlink_praticien_v1_ExistsActivePraticienResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_medlink_praticien_v1_PraticienGrpcResponse_descriptor;
   static final 
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -56,19 +71,29 @@ public final class PraticienProto extends com.google.protobuf.GeneratedFile {
       "\022\r\n\005email\030\004 \001(\t\022\r\n\005phone\030\005 \001(\t\022\024\n\014numero" +
       "_ordre\030\006 \001(\t\022\025\n\rspecialite_id\030\007 \001(\003\"6\n\037G" +
       "etPraticienByKeycloakIdRequest\022\023\n\013keyclo" +
-      "ak_id\030\001 \001(\t\"\257\001\n\025PraticienGrpcResponse\022\n\n" +
-      "\002id\030\001 \001(\003\022\023\n\013keycloak_id\030\002 \001(\t\022\013\n\003nom\030\003 " +
-      "\001(\t\022\016\n\006prenom\030\004 \001(\t\022\r\n\005email\030\005 \001(\t\022\r\n\005ph" +
-      "one\030\006 \001(\t\022\024\n\014numero_ordre\030\007 \001(\t\022\025\n\rspeci" +
-      "alite_id\030\010 \001(\003\022\r\n\005actif\030\t \001(\0102\210\002\n\024Pratic" +
-      "ienGrpcService\022p\n\017CreatePraticien\0220.medl" +
-      "ink.praticien.v1.CreatePraticienGrpcRequ" +
-      "est\032+.medlink.praticien.v1.PraticienGrpc" +
-      "Response\022~\n\030GetPraticienByKeycloakId\0225.m" +
-      "edlink.praticien.v1.GetPraticienByKeyclo" +
-      "akIdRequest\032+.medlink.praticien.v1.Prati" +
-      "cienGrpcResponseB-\n\031medlink.grpc.pratici" +
-      "en.v1B\016PraticienProtoP\001b\006proto3"
+      "ak_id\030\001 \001(\t\"/\n\027GetPraticienByIdRequest\022\024" +
+      "\n\014praticien_id\030\001 \001(\003\"4\n\034ExistsActivePrat" +
+      "icienRequest\022\024\n\014praticien_id\030\001 \001(\003\":\n\035Ex" +
+      "istsActivePraticienResponse\022\031\n\021exists_an" +
+      "d_active\030\001 \001(\010\"\257\001\n\025PraticienGrpcResponse" +
+      "\022\n\n\002id\030\001 \001(\003\022\023\n\013keycloak_id\030\002 \001(\t\022\013\n\003nom" +
+      "\030\003 \001(\t\022\016\n\006prenom\030\004 \001(\t\022\r\n\005email\030\005 \001(\t\022\r\n" +
+      "\005phone\030\006 \001(\t\022\024\n\014numero_ordre\030\007 \001(\t\022\025\n\rsp" +
+      "ecialite_id\030\010 \001(\003\022\r\n\005actif\030\t \001(\0102\373\003\n\024Pra" +
+      "ticienGrpcService\022p\n\017CreatePraticien\0220.m" +
+      "edlink.praticien.v1.CreatePraticienGrpcR" +
+      "equest\032+.medlink.praticien.v1.PraticienG" +
+      "rpcResponse\022~\n\030GetPraticienByKeycloakId\022" +
+      "5.medlink.praticien.v1.GetPraticienByKey" +
+      "cloakIdRequest\032+.medlink.praticien.v1.Pr" +
+      "aticienGrpcResponse\022n\n\020GetPraticienById\022" +
+      "-.medlink.praticien.v1.GetPraticienByIdR" +
+      "equest\032+.medlink.praticien.v1.PraticienG" +
+      "rpcResponse\022\200\001\n\025ExistsActivePraticien\0222." +
+      "medlink.praticien.v1.ExistsActivePratici" +
+      "enRequest\0323.medlink.praticien.v1.ExistsA" +
+      "ctivePraticienResponseB-\n\031medlink.grpc.p" +
+      "raticien.v1B\016PraticienProtoP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -86,8 +111,26 @@ public final class PraticienProto extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_medlink_praticien_v1_GetPraticienByKeycloakIdRequest_descriptor,
         new java.lang.String[] { "KeycloakId", });
-    internal_static_medlink_praticien_v1_PraticienGrpcResponse_descriptor =
+    internal_static_medlink_praticien_v1_GetPraticienByIdRequest_descriptor =
       getDescriptor().getMessageType(2);
+    internal_static_medlink_praticien_v1_GetPraticienByIdRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_medlink_praticien_v1_GetPraticienByIdRequest_descriptor,
+        new java.lang.String[] { "PraticienId", });
+    internal_static_medlink_praticien_v1_ExistsActivePraticienRequest_descriptor =
+      getDescriptor().getMessageType(3);
+    internal_static_medlink_praticien_v1_ExistsActivePraticienRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_medlink_praticien_v1_ExistsActivePraticienRequest_descriptor,
+        new java.lang.String[] { "PraticienId", });
+    internal_static_medlink_praticien_v1_ExistsActivePraticienResponse_descriptor =
+      getDescriptor().getMessageType(4);
+    internal_static_medlink_praticien_v1_ExistsActivePraticienResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_medlink_praticien_v1_ExistsActivePraticienResponse_descriptor,
+        new java.lang.String[] { "ExistsAndActive", });
+    internal_static_medlink_praticien_v1_PraticienGrpcResponse_descriptor =
+      getDescriptor().getMessageType(5);
     internal_static_medlink_praticien_v1_PraticienGrpcResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_medlink_praticien_v1_PraticienGrpcResponse_descriptor,

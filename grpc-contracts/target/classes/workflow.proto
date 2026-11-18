@@ -1,0 +1,66 @@
+
+syntax = "proto3";
+
+package medilink.v1;
+
+option java_multiple_files = true;
+option java_package = "medlink.project.grpc.workflow";
+
+import "google/protobuf/timestamp.proto";
+
+service WorkflowGrpcService {
+  rpc StartAppointmentWorkflow(StartAppointmentWorkflowRequest)
+      returns (StartAppointmentWorkflowResponse);
+
+  rpc GetWorkflowStatus(GetWorkflowStatusRequest)
+      returns (GetWorkflowStatusResponse);
+
+  rpc CancelAppointmentWorkflow(CancelAppointmentWorkflowRequest)
+      returns (WorkflowEventResponse);
+
+  rpc RequestReschedule(RequestRescheduleRequest)
+      returns (WorkflowEventResponse);
+}
+
+message StartAppointmentWorkflowRequest {
+  int64 patient_id = 1;
+  int64 praticien_id = 2;
+  int64 clinique_id = 3;
+  string actor_user_id = 4;
+  string idempotency_key = 5;
+}
+
+message StartAppointmentWorkflowResponse {
+  string process_instance_id = 1;
+  string business_key = 2;
+}
+
+message GetWorkflowStatusRequest {
+  string process_instance_id = 1;
+}
+
+message GetWorkflowStatusResponse {
+  string process_instance_id = 1;
+  bool active = 2;
+  string current_activity_id = 3;
+  int64 rendez_vous_id = 4;
+}
+
+message CancelAppointmentWorkflowRequest {
+  string process_instance_id = 1;
+  int64 rendez_vous_id = 2;
+  string reason = 3;
+  string event_id = 4;
+}
+
+message RequestRescheduleRequest {
+  string process_instance_id = 1;
+  int64 rendez_vous_id = 2;
+  string event_id = 3;
+}
+
+message WorkflowEventResponse {
+  bool accepted = 1;
+  string process_instance_id = 2;
+  google.protobuf.Timestamp received_at = 3;
+}

@@ -1,0 +1,16 @@
+package medlink.project.medicalrecordservice.security.authorization;
+
+import java.util.UUID;
+
+public interface MedicalRecordAccessService {
+
+    void checkCanCreateForPatient(Long patientId);
+
+    void checkCanRead(Long dossierId);
+
+    void checkCanWrite(Long dossierId);
+
+    void checkCanListAll();
+
+    void checkCanListByPractitioner(UUID practitionerId);
+}

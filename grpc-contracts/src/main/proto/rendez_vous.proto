@@ -1,0 +1,122 @@
+
+syntax = "proto3";
+
+package medilink.v1;
+
+option java_multiple_files = true;
+option java_package = "medlink.project.grpc.rendezvous";
+option java_outer_classname = "RendezVousProto";
+
+import "google/protobuf/timestamp.proto";
+
+// ====================================
+// SERVICE GRPC RENDEZ-VOUS
+// ====================================
+
+service RendezVousGrpcService {
+
+  rpc CreateRendezVous(CreateRendezVousRequest)
+      returns (RendezVousResponse);
+
+  rpc GetRendezVous(GetRendezVousRequest)
+      returns (RendezVousResponse);
+
+  rpc CancelRendezVous(CancelRendezVousRequest)
+      returns (RendezVousResponse);
+
+  rpc RescheduleRendezVous(RescheduleRendezVousRequest)
+      returns (RendezVousResponse);
+
+  rpc UpdatePresence(UpdatePresenceRequest)
+      returns (RendezVousResponse);
+
+  rpc CompleteConsultation(CompleteConsultationRequest)
+      returns (RendezVousResponse);
+
+  rpc CreateFollowUpRendezVous(CreateFollowUpRendezVousRequest)
+      returns (RendezVousResponse);
+}
+
+// ====================================
+// ENUM STATUS
+// ====================================
+
+enum RendezVousStatus {
+  RENDEZ_VOUS_STATUS_UNSPECIFIED = 0;
+  RDV_SCHEDULED = 1;
+  RDV_CANCELLED = 2;
+  RDV_COMPLETED = 3;
+  RDV_NO_SHOW = 4;
+}
+
+// ====================================
+// CREATE RENDEZ-VOUS
+// ====================================
+
+message CreateRendezVousRequest {
+  int64 patient_id = 1;
+  int64 praticien_id = 2;
+  int64 clinique_id = 3;
+  int64 creneau_id = 4;
+  string motif = 5;
+  string idempotency_key = 6;
+}
+
+
+
+message GetRendezVousRequest {
+  int64 rendez_vous_id = 1;
+}
+
+
+message CancelRendezVousRequest {
+  int64 rendez_vous_id = 1;
+  string reason = 2;
+  string idempotency_key = 3;
+}
+
+
+message RescheduleRendezVousRequest {
+  int64 rendez_vous_id = 1;
+  int64 new_creneau_id = 2;
+  string idempotency_key = 3;
+}
+
+message UpdatePresenceRequest {
+  int64 rendez_vous_id = 1;
+  bool patient_present = 2;
+  string idempotency_key = 3;
+}
+
+
+message CompleteConsultationRequest {
+  int64 rendez_vous_id = 1;
+  bool controle_requis = 2;
+  string idempotency_key = 3;
+}
+
+message CreateFollowUpRendezVousRequest {
+  int64 parent_rendez_vous_id = 1;
+  int64 creneau_id = 2;
+  string motif_controle = 3;
+  string idempotency_key = 4;
+}
+
+
+message RendezVousResponse {
+  int64 id = 1;
+  int64 patient_id = 2;
+  int64 praticien_id = 3;
+  int64 clinique_id = 4;
+  int64 creneau_id = 5;
+
+  RendezVousStatus status = 6;
+
+  google.protobuf.Timestamp start_at = 7;
+  google.protobuf.Timestamp end_at = 8;
+
+  optional bool patient_present = 9;
+  optional bool controle_requis = 10;
+
+  int64 version = 11;
+}

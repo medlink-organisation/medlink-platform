@@ -74,6 +74,68 @@ public final class PraticienGrpcServiceGrpc {
     return getGetPraticienByKeycloakIdMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<medlink.grpc.praticien.v1.GetPraticienByIdRequest,
+      medlink.grpc.praticien.v1.PraticienGrpcResponse> getGetPraticienByIdMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetPraticienById",
+      requestType = medlink.grpc.praticien.v1.GetPraticienByIdRequest.class,
+      responseType = medlink.grpc.praticien.v1.PraticienGrpcResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<medlink.grpc.praticien.v1.GetPraticienByIdRequest,
+      medlink.grpc.praticien.v1.PraticienGrpcResponse> getGetPraticienByIdMethod() {
+    io.grpc.MethodDescriptor<medlink.grpc.praticien.v1.GetPraticienByIdRequest, medlink.grpc.praticien.v1.PraticienGrpcResponse> getGetPraticienByIdMethod;
+    if ((getGetPraticienByIdMethod = PraticienGrpcServiceGrpc.getGetPraticienByIdMethod) == null) {
+      synchronized (PraticienGrpcServiceGrpc.class) {
+        if ((getGetPraticienByIdMethod = PraticienGrpcServiceGrpc.getGetPraticienByIdMethod) == null) {
+          PraticienGrpcServiceGrpc.getGetPraticienByIdMethod = getGetPraticienByIdMethod =
+              io.grpc.MethodDescriptor.<medlink.grpc.praticien.v1.GetPraticienByIdRequest, medlink.grpc.praticien.v1.PraticienGrpcResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetPraticienById"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  medlink.grpc.praticien.v1.GetPraticienByIdRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  medlink.grpc.praticien.v1.PraticienGrpcResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PraticienGrpcServiceMethodDescriptorSupplier("GetPraticienById"))
+              .build();
+        }
+      }
+    }
+    return getGetPraticienByIdMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<medlink.grpc.praticien.v1.ExistsActivePraticienRequest,
+      medlink.grpc.praticien.v1.ExistsActivePraticienResponse> getExistsActivePraticienMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ExistsActivePraticien",
+      requestType = medlink.grpc.praticien.v1.ExistsActivePraticienRequest.class,
+      responseType = medlink.grpc.praticien.v1.ExistsActivePraticienResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<medlink.grpc.praticien.v1.ExistsActivePraticienRequest,
+      medlink.grpc.praticien.v1.ExistsActivePraticienResponse> getExistsActivePraticienMethod() {
+    io.grpc.MethodDescriptor<medlink.grpc.praticien.v1.ExistsActivePraticienRequest, medlink.grpc.praticien.v1.ExistsActivePraticienResponse> getExistsActivePraticienMethod;
+    if ((getExistsActivePraticienMethod = PraticienGrpcServiceGrpc.getExistsActivePraticienMethod) == null) {
+      synchronized (PraticienGrpcServiceGrpc.class) {
+        if ((getExistsActivePraticienMethod = PraticienGrpcServiceGrpc.getExistsActivePraticienMethod) == null) {
+          PraticienGrpcServiceGrpc.getExistsActivePraticienMethod = getExistsActivePraticienMethod =
+              io.grpc.MethodDescriptor.<medlink.grpc.praticien.v1.ExistsActivePraticienRequest, medlink.grpc.praticien.v1.ExistsActivePraticienResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ExistsActivePraticien"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  medlink.grpc.praticien.v1.ExistsActivePraticienRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  medlink.grpc.praticien.v1.ExistsActivePraticienResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new PraticienGrpcServiceMethodDescriptorSupplier("ExistsActivePraticien"))
+              .build();
+        }
+      }
+    }
+    return getExistsActivePraticienMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -150,6 +212,20 @@ public final class PraticienGrpcServiceGrpc {
         io.grpc.stub.StreamObserver<medlink.grpc.praticien.v1.PraticienGrpcResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetPraticienByKeycloakIdMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void getPraticienById(medlink.grpc.praticien.v1.GetPraticienByIdRequest request,
+        io.grpc.stub.StreamObserver<medlink.grpc.praticien.v1.PraticienGrpcResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetPraticienByIdMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void existsActivePraticien(medlink.grpc.praticien.v1.ExistsActivePraticienRequest request,
+        io.grpc.stub.StreamObserver<medlink.grpc.praticien.v1.ExistsActivePraticienResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getExistsActivePraticienMethod(), responseObserver);
+    }
   }
 
   /**
@@ -194,6 +270,22 @@ public final class PraticienGrpcServiceGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetPraticienByKeycloakIdMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void getPraticienById(medlink.grpc.praticien.v1.GetPraticienByIdRequest request,
+        io.grpc.stub.StreamObserver<medlink.grpc.praticien.v1.PraticienGrpcResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getGetPraticienByIdMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void existsActivePraticien(medlink.grpc.praticien.v1.ExistsActivePraticienRequest request,
+        io.grpc.stub.StreamObserver<medlink.grpc.praticien.v1.ExistsActivePraticienResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getExistsActivePraticienMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -225,6 +317,20 @@ public final class PraticienGrpcServiceGrpc {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getGetPraticienByKeycloakIdMethod(), getCallOptions(), request);
     }
+
+    /**
+     */
+    public medlink.grpc.praticien.v1.PraticienGrpcResponse getPraticienById(medlink.grpc.praticien.v1.GetPraticienByIdRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getGetPraticienByIdMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public medlink.grpc.praticien.v1.ExistsActivePraticienResponse existsActivePraticien(medlink.grpc.praticien.v1.ExistsActivePraticienRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getExistsActivePraticienMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -255,6 +361,20 @@ public final class PraticienGrpcServiceGrpc {
     public medlink.grpc.praticien.v1.PraticienGrpcResponse getPraticienByKeycloakId(medlink.grpc.praticien.v1.GetPraticienByKeycloakIdRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetPraticienByKeycloakIdMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public medlink.grpc.praticien.v1.PraticienGrpcResponse getPraticienById(medlink.grpc.praticien.v1.GetPraticienByIdRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getGetPraticienByIdMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public medlink.grpc.praticien.v1.ExistsActivePraticienResponse existsActivePraticien(medlink.grpc.praticien.v1.ExistsActivePraticienRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getExistsActivePraticienMethod(), getCallOptions(), request);
     }
   }
 
@@ -289,10 +409,28 @@ public final class PraticienGrpcServiceGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetPraticienByKeycloakIdMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<medlink.grpc.praticien.v1.PraticienGrpcResponse> getPraticienById(
+        medlink.grpc.praticien.v1.GetPraticienByIdRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getGetPraticienByIdMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<medlink.grpc.praticien.v1.ExistsActivePraticienResponse> existsActivePraticien(
+        medlink.grpc.praticien.v1.ExistsActivePraticienRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getExistsActivePraticienMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_CREATE_PRATICIEN = 0;
   private static final int METHODID_GET_PRATICIEN_BY_KEYCLOAK_ID = 1;
+  private static final int METHODID_GET_PRATICIEN_BY_ID = 2;
+  private static final int METHODID_EXISTS_ACTIVE_PRATICIEN = 3;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -318,6 +456,14 @@ public final class PraticienGrpcServiceGrpc {
         case METHODID_GET_PRATICIEN_BY_KEYCLOAK_ID:
           serviceImpl.getPraticienByKeycloakId((medlink.grpc.praticien.v1.GetPraticienByKeycloakIdRequest) request,
               (io.grpc.stub.StreamObserver<medlink.grpc.praticien.v1.PraticienGrpcResponse>) responseObserver);
+          break;
+        case METHODID_GET_PRATICIEN_BY_ID:
+          serviceImpl.getPraticienById((medlink.grpc.praticien.v1.GetPraticienByIdRequest) request,
+              (io.grpc.stub.StreamObserver<medlink.grpc.praticien.v1.PraticienGrpcResponse>) responseObserver);
+          break;
+        case METHODID_EXISTS_ACTIVE_PRATICIEN:
+          serviceImpl.existsActivePraticien((medlink.grpc.praticien.v1.ExistsActivePraticienRequest) request,
+              (io.grpc.stub.StreamObserver<medlink.grpc.praticien.v1.ExistsActivePraticienResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -351,6 +497,20 @@ public final class PraticienGrpcServiceGrpc {
               medlink.grpc.praticien.v1.GetPraticienByKeycloakIdRequest,
               medlink.grpc.praticien.v1.PraticienGrpcResponse>(
                 service, METHODID_GET_PRATICIEN_BY_KEYCLOAK_ID)))
+        .addMethod(
+          getGetPraticienByIdMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              medlink.grpc.praticien.v1.GetPraticienByIdRequest,
+              medlink.grpc.praticien.v1.PraticienGrpcResponse>(
+                service, METHODID_GET_PRATICIEN_BY_ID)))
+        .addMethod(
+          getExistsActivePraticienMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              medlink.grpc.praticien.v1.ExistsActivePraticienRequest,
+              medlink.grpc.praticien.v1.ExistsActivePraticienResponse>(
+                service, METHODID_EXISTS_ACTIVE_PRATICIEN)))
         .build();
   }
 
@@ -401,6 +561,8 @@ public final class PraticienGrpcServiceGrpc {
               .setSchemaDescriptor(new PraticienGrpcServiceFileDescriptorSupplier())
               .addMethod(getCreatePraticienMethod())
               .addMethod(getGetPraticienByKeycloakIdMethod())
+              .addMethod(getGetPraticienByIdMethod())
+              .addMethod(getExistsActivePraticienMethod())
               .build();
         }
       }

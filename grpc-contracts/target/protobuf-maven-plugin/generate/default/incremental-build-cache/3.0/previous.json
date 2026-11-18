@@ -77,6 +77,15 @@
       "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/protobuf-maven-plugin/generate/default/archives/protobuf-java-4.36.2-dbab07719d0b58b8c40d7dfb039ee8d0458a7bd2/google/protobuf/any.proto": "21dc495eba6a4760a7ad75e3fe881bc5fa084b02a0a6d042a35f08f8c0e963531d4e4157a49ed25e4bc376e2dc5d589d5fe8078b981ce5026770271d51ba5ba8",
       "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/target/protobuf-maven-plugin/generate/default/archives/proto-google-common-protos-2.64.1-d8aad63932e22c248cb59c300465ba2852f99588/google/rpc/code.proto": "d984300d96f5f53bd4d446ee7a85d3cc2021eb16c3c8e11c89cf479fcd8ed79d948cc53d33f98567d1fc71253a241e50162b1fe1a4831473d09a7746c5925b29"
     },
-    "proto_sources": {"file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/praticien.proto": "61e58c778bdfa5070ca5d2b78c40df6570364d36e3ec4115012f00a12b8c28541a574b146055e4e517bde560ec750723acd94329716528c04ba098e705a67cb8"},
+    "proto_sources": {
+      "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/common.proto": "f97f2dcd24f2fa2408a19b1903d9c42df82b70d77ca8aa0390b39aa230f5aa06db20e3bdae6776b50a2dc9823ec975411a1320b84272e980aba57c7cfa9c5d37",
+      "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/creneau.proto": "d2fc40fe5ac147412f82f6c5d8d03028337a68f34b7b3c53ff77c4307aef71cdb0bf43c045053c8231761439371044754f87aee41ad932fa7cd144a3ab4ba7c9",
+      "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/rendez_vous.proto": "d9ba7ec03e88928e65e934d18795991fb2b8470681937e4222021e3a9b0bd6ca97cd0ac92b619a67f711413896cec17f56e02fee77572c5b0e0a2daab3487fd2",
+      "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/directory.proto": "34f905cb164901be02477d06d4d3b860b6d9d3604c4a36e70d324a8e4fabdaa9ecc0c9802462fca743003fe6b92e5eb00fc7b1496498bdd55f7ef3466aec6820",
+      "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/praticien.proto": "16097a1e1f68bef27888535c5be7d134df4a72cc4c1827cd433a2cbf56696d511acfc03bf70fd09b2ad06a1b4cbd4c8a2f50a9b0b7fcd7f727a4bda5113e85bc",
+      "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/medical_record.proto": "e5577a29bbd64c4872d2033f86662be7ecc527149a85aad763a10a033dba75ed6b4e2fa3303a551c61a604d5d36a3d3b351619d6d12b20840079f0ce10c16d6a",
+      "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/auth.proto": "a15172e8c67fd0f20bb2240d3ed7acc5c7147b232f90fc1e4c36c92953e800471c0a96913c6073aad62ea7e930c72c7f9ceea3ad18f141231908f5c78774d568",
+      "file:///home/iheb/Public/medilink/medlink-platform/grpc-contracts/src/main/proto/workflow.proto": "0e9b0e4b46b8ea18b7e4dc786d53fcbbc3e3a6873b9f762e9f320accd6378bb1a995d40519745f300cdb8064e3d7cadbe5c6ce3f4451a3ea88d9edccc0342723"
+    },
     "descriptor_files": {}
   }
