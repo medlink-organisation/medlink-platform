@@ -1,5 +1,6 @@
 package medlink.project.medicalrecordservice.security;
 
+import medlink.project.medicalrecordservice.config.properties.JwtProperties;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,12 +21,20 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
     private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter =
             new JwtGrantedAuthoritiesConverter();
+    private final String resourceId;
+
+    public JwtAuthConverter(JwtProperties properties) {
+        this.resourceId = properties.resourceId();
+    }
 
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         Collection<GrantedAuthority> authorities = Stream.concat(
                 jwtGrantedAuthoritiesConverter.convert(jwt).stream(),
-                extractResourceRoles(jwt).stream()
+                Stream.concat(
+                        extractRoles(jwt.getClaim("realm_access")).stream(),
+                        extractClientRoles(jwt).stream()
+                )
         ).collect(Collectors.toSet());
         String username = jwt.getClaimAsString("preferred_username");
 
@@ -43,12 +52,19 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         );
     }
 
-    private Collection<GrantedAuthority> extractResourceRoles(Jwt jwt) {
-        Object realmAccessClaim = jwt.getClaim("realm_access");
-        if (!(realmAccessClaim instanceof Map<?, ?> realmAccess)) {
+    private Collection<GrantedAuthority> extractClientRoles(Jwt jwt) {
+        Object resourceAccessClaim = jwt.getClaim("resource_access");
+        if (!(resourceAccessClaim instanceof Map<?, ?> resourceAccess)) {
             return Set.of();
         }
-        Object rolesClaim = realmAccess.get("roles");
+        return extractRoles(resourceAccess.get(resourceId));
+    }
+
+    private Collection<GrantedAuthority> extractRoles(Object accessClaim) {
+        if (!(accessClaim instanceof Map<?, ?> access)) {
+            return Set.of();
+        }
+        Object rolesClaim = access.get("roles");
         if (!(rolesClaim instanceof Collection<?> roles)) {
             return Set.of();
         }

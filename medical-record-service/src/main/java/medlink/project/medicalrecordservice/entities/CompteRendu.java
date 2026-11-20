@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -51,7 +50,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Audited
-public class CompteRendu  extends AuditableEntity {
+public class CompteRendu extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -67,7 +66,6 @@ public class CompteRendu  extends AuditableEntity {
     @Column(name = "date_redaction", nullable = false, updatable = false)
     private LocalDateTime dateRedaction;
 
-    @Lob
     @Column(name = "contenu", nullable = false, columnDefinition = "TEXT")
     private String contenu;
 

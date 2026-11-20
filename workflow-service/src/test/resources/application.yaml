@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: workflow-service-test
+  config:
+    import: []
+  datasource:
+    url: jdbc:h2:mem:workflow;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  cloud:
+    config:
+      enabled: false
+    vault:
+      enabled: false
+    bus:
+      enabled: false
+    discovery:
+      enabled: false
+  grpc:
+    server:
+      port: 0
+    client:
+      channel:
+        scheduling-service:
+          target: static://localhost:19093
+        auth-service:
+          target: static://localhost:19091
+        praticien-service:
+          target: static://localhost:19092
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:19999/jwks
+  mail:
+    host: localhost
+    port: 1025
+
+eureka:
+  client:
+    enabled: false
+
+flowable:
+  async-executor-activate: false

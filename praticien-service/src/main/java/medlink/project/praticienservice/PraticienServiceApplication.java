@@ -8,6 +8,9 @@ public class PraticienServiceApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(PraticienServiceApplication.class, args);
+
+
     }
+
 
 }

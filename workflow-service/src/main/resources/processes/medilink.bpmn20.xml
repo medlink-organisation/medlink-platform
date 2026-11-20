@@ -24,16 +24,19 @@
         <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
       </extensionElements>
     </userTask>
+    <serviceTask id="finaliserConsultationTask" name="Finaliser la consultation" flowable:delegateExpression="${finaliserConsultationDelegate}"></serviceTask>
     <exclusiveGateway id="sid-659C59F0-F2BC-4ABD-988D-ED0F6BEA16EF" name="Contrôle requis ?
 "></exclusiveGateway>
     <userTask id="sid-93365DB8-C583-43C8-9A1E-0AAE5A1189F3" name="Créer le RDV de contrôle
 " flowable:assignee="${praticienId}" flowable:formFieldValidation="true">
       <extensionElements>
         <flowable:formProperty id="dateControle" name="date de controle" type="date" datePattern="dd-MM-yyyy HH:mm" required="true"></flowable:formProperty>
+        <flowable:formProperty id="creneauId" name="creneau du contrôle" type="long" required="true"></flowable:formProperty>
         <flowable:formProperty id="motifControle" name="motif Controle" type="string"></flowable:formProperty>
         <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
       </extensionElements>
     </userTask>
+    <serviceTask id="preparerControleTask" name="Préparer le rendez-vous de contrôle" flowable:delegateExpression="${preparerControleDelegate}"></serviceTask>
     <endEvent id="sid-0E284442-9821-4C48-8920-02D4B0DDB72B"></endEvent>
     <sequenceFlow id="sid-A8B46A11-A2A7-4A05-AEFC-B37F69A63ECB" sourceRef="startEvent1" targetRef="sid-09060B9A-FBC3-487C-8CA0-ADD7F9A2D40A"></sequenceFlow>
     <subProcess id="sid-B7FDBBA1-425C-465F-BC45-91F579038C6A" name="RDV planifié">
@@ -87,7 +90,8 @@ Merci de vous présenter à l'heure.]]></flowable:expression>
       <sequenceFlow id="sid-26B6064B-2B6C-47B9-97D9-347E53EEE081" sourceRef="sid-8EF184C8-9F7C-437E-A4E7-2C4314C550A5" targetRef="sid-E7A37B44-7FAA-45FA-B490-5DAF81541578"></sequenceFlow>
       <sequenceFlow id="sid-282BE2DD-DE06-444D-BE63-327A68C6D317" sourceRef="sid-A9B6D073-5318-4305-976A-0EED79871E79" targetRef="sid-F63D3D19-E421-4A8E-ADB5-4719D05C34D1"></sequenceFlow>
     </subProcess>
-    <sequenceFlow id="sid-768FA7C6-8505-4B1F-B6BF-CE21637B6C45" sourceRef="sid-93365DB8-C583-43C8-9A1E-0AAE5A1189F3" targetRef="sid-B7FDBBA1-425C-465F-BC45-91F579038C6A"></sequenceFlow>
+    <sequenceFlow id="sid-768FA7C6-8505-4B1F-B6BF-CE21637B6C45" sourceRef="sid-93365DB8-C583-43C8-9A1E-0AAE5A1189F3" targetRef="preparerControleTask"></sequenceFlow>
+    <sequenceFlow id="preparerControleFlow" sourceRef="preparerControleTask" targetRef="sid-B7FDBBA1-425C-465F-BC45-91F579038C6A"></sequenceFlow>
     <serviceTask id="sid-48652E3F-BFB2-488E-8300-4D59959388C4" name="Libérer le créneau
 " flowable:delegateExpression="${libererCreneauDelegate}"></serviceTask>
     <serviceTask id="sid-3CF842F0-0C85-4003-9699-3ABF81E7C509" name="Alerter le praticien" flowable:delegateExpression="${alertePraticienDelegate}"></serviceTask>
@@ -102,7 +106,8 @@ Merci de vous présenter à l'heure.]]></flowable:expression>
     <boundaryEvent id="sid-8A2F810B-CD54-4B69-B7ED-1F9CBED6828D" name="changement" attachedToRef="sid-B7FDBBA1-425C-465F-BC45-91F579038C6A" cancelActivity="true">
       <messageEventDefinition messageRef="changementRDV"></messageEventDefinition>
     </boundaryEvent>
-    <sequenceFlow id="sid-C03015B3-1EDE-44AA-A012-480C7E6E7EB2" sourceRef="sid-67B03EB7-8B5A-44E7-9A78-55F7CE14FDAB" targetRef="sid-659C59F0-F2BC-4ABD-988D-ED0F6BEA16EF"></sequenceFlow>
+    <sequenceFlow id="sid-C03015B3-1EDE-44AA-A012-480C7E6E7EB2" sourceRef="sid-67B03EB7-8B5A-44E7-9A78-55F7CE14FDAB" targetRef="finaliserConsultationTask"></sequenceFlow>
+    <sequenceFlow id="finaliserConsultationFlow" sourceRef="finaliserConsultationTask" targetRef="sid-659C59F0-F2BC-4ABD-988D-ED0F6BEA16EF"></sequenceFlow>
     <sequenceFlow id="sid-A8BE3785-11D6-4C8A-97D8-29A3D8FD87A3" name="non" sourceRef="sid-659C59F0-F2BC-4ABD-988D-ED0F6BEA16EF" targetRef="sid-0E284442-9821-4C48-8920-02D4B0DDB72B">
       <conditionExpression xsi:type="tFormalExpression"><![CDATA[${controleRequis == false}]]></conditionExpression>
     </sequenceFlow>

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
@@ -17,7 +17,7 @@ public class CorsConfig {
     private String allowedOriginsRaw;
 
     @Bean
-    public CorsWebFilter corsWebFilter() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
         List<String> allowedOrigins = Arrays.asList(allowedOriginsRaw.split(","));
@@ -36,6 +36,6 @@ public class CorsConfig {
         source.registerCorsConfiguration("/**", corsConfig);
 
 
-        return new CorsWebFilter(source);
+        return source;
     }
 }

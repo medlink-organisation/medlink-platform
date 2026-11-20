@@ -4,7 +4,7 @@ syntax = "proto3";
 package medilink.v1;
 
 option java_multiple_files = true;
-option java_package = "medlink.project.grpc.directory";
+option java_package = "medlink.grpc.directory.v1";
 
 service DirectoryGrpcService {
   rpc GetClinicById(GetClinicByIdRequest)

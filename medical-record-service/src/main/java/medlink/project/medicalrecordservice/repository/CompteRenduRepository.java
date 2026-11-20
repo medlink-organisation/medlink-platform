@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
+import java.util.Optional;
 
 public interface CompteRenduRepository extends JpaRepository<CompteRendu, UUID> {
 
@@ -14,4 +15,6 @@ public interface CompteRenduRepository extends JpaRepository<CompteRendu, UUID> 
     Page<CompteRendu> findByPraticienId(UUID praticienId, Pageable pageable);
 
     boolean existsByRendezVousId(UUID rendezVousId);
+
+    Optional<CompteRendu> findByRendezVousId(UUID rendezVousId);
 }

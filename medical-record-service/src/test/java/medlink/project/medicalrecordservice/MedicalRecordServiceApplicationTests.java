@@ -10,6 +10,8 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,6 +31,21 @@ class MedicalRecordServiceApplicationTests {
                         UUID.randomUUID()
                 ))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rejectsWorkflowInternalApiWithoutServiceRole() throws Exception {
+        mockMvc.perform(get("/internal/medical-records/patients/{patientId}", 42L).with(jwt()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void acceptsWorkflowServiceRoleOnInternalApi() throws Exception {
+        mockMvc.perform(get("/internal/medical-records/patients/{patientId}", 42L)
+                        .with(jwt().authorities(
+                                new SimpleGrantedAuthority("ROLE_WORKFLOW_SERVICE")
+                        )))
+                .andExpect(status().isNotFound());
     }
 
 }

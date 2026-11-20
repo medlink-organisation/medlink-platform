@@ -19,4 +19,8 @@ public interface CreneauService {
     void delete(Long id);
 
     boolean isDisponible(Long id);
+
+    CreneauDto reserver(Long id);
+
+    CreneauDto liberer(Long id);
 }

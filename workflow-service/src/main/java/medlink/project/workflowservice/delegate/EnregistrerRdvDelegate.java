@@ -1,102 +1,127 @@
 package medlink.project.workflowservice.delegate;
 
 import lombok.RequiredArgsConstructor;
-import medlink.project.workflowservice.client.RendezVousGateway;
-import medlink.project.workflowservice.client.RendezVousGateway.RendezVousInfo;
-
+import medlink.grpc.rendezvous.v1.RendezVousResponse;
+import medlink.project.workflowservice.client.RendezVousGrpcClient;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.delegate.JavaDelegate;
 import org.springframework.stereotype.Component;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.Date;
 
 @Component("enregistrerRdvDelegate")
 @RequiredArgsConstructor
 public class EnregistrerRdvDelegate implements JavaDelegate {
 
-    private final RendezVousGateway rendezVousGateway;
+    private final RendezVousGrpcClient rendezVousGrpcClient;
 
     @Override
     public void execute(DelegateExecution execution) {
 
-        String typeRdv =
-                (String) execution.getVariable("typeRdv");
+        String typeRdv = stringVariable(execution, "typeRdv", "NORMAL");
+        Long creneauId = requiredLongVariable(execution, "creneauId");
+        String operationId = idempotencyKey(execution, typeRdv, creneauId);
 
-        Long patientId =
-                (Long) execution.getVariable("patientId");
-
-        Long praticienMetierId =
-                (Long) execution.getVariable("praticienMetierId");
-
-        // Clé stable pendant les retries d'une même réservation
-        String operationId =
-                execution.getProcessInstanceId()
-                        + ":"
-                        + execution.getCurrentActivityId()
-                        + ":"
-                        + execution.getVariable("reservationSequence");
-
-        RendezVousInfo rdv;
-
-        if ("CONTROLE".equals(typeRdv)) {
-
-            Long parentRdvId =
-                    (Long) execution.getVariable("parentRdvId");
-
-            // Préparée par le backend lors de la User Task
-            OffsetDateTime dateControle =
-                    (OffsetDateTime) execution.getVariable(
-                            "dateControleUtc"
-                    );
-
-            rdv = rendezVousGateway.reserverRdvControle(
-                    operationId,
-                    patientId,
-                    praticienMetierId,
-                    parentRdvId,
-                    dateControle
+        RendezVousResponse rdv;
+        if (Boolean.TRUE.equals(execution.getVariable("reportRdv"))) {
+            rdv = rendezVousGrpcClient.reschedule(
+                    requiredStringVariable(execution, "rdvId"),
+                    creneauId,
+                    operationId
             );
-
-        } else if ("NORMAL".equals(typeRdv)) {
-
-            Long creneauId =
-                    (Long) execution.getVariable("creneauId");
-
-            rdv = rendezVousGateway.reserverRdvNormal(
-                    operationId,
-                    patientId,
-                    praticienMetierId,
-                    creneauId
-            );
-
+            execution.removeVariable("reportRdv");
         } else {
-            throw new IllegalStateException(
-                    "Type de RDV invalide : " + typeRdv
-            );
+            rdv = createRendezVous(execution, typeRdv, creneauId, operationId);
         }
 
-        OffsetDateTime date = rdv.dateRdv();
-
-        execution.setVariable("rdvId", rdv.id());
-
-        execution.setVariable(
-                "dateRdv",
-                Date.from(date.toInstant())
+        Instant startAt = Instant.ofEpochSecond(
+                rdv.getStartAt().getSeconds(),
+                rdv.getStartAt().getNanos()
         );
 
-        execution.setVariable(
-                "rappelDate",
-                Date.from(date.toInstant().minusSeconds(86400))
-        );
-
-        execution.setVariable(
-                "patientEmail",
-                rdv.patientEmail()
-        );
+        execution.setVariable("rdvId", rdv.getId());
+        execution.setVariable("dateRdv", Date.from(startAt));
+        execution.setVariable("rappelDate", Date.from(startAt.minusSeconds(86_400)));
 
         execution.setVariable("patientPresent", null);
         execution.setVariable("controleRequis", null);
+    }
+
+    private RendezVousResponse createRendezVous(
+            DelegateExecution execution,
+            String typeRdv,
+            Long creneauId,
+            String operationId) {
+
+        return switch (typeRdv) {
+            case "NORMAL" -> rendezVousGrpcClient.create(
+                    requiredLongVariable(execution, "patientId"),
+                    praticienId(execution),
+                    requiredLongVariable(execution, "cliniqueId"),
+                    creneauId,
+                    stringVariable(execution, "motif", ""),
+                    operationId
+            );
+            case "CONTROLE" -> rendezVousGrpcClient.createFollowUp(
+                    requiredStringVariable(execution, "parentRdvId"),
+                    creneauId,
+                    stringVariable(execution, "motifControle", ""),
+                    operationId
+            );
+            default -> throw new IllegalStateException(
+                    "Type de RDV invalide : " + typeRdv);
+        };
+    }
+
+    private String idempotencyKey(
+            DelegateExecution execution,
+            String typeRdv,
+            Long creneauId) {
+
+        return String.join(":",
+                execution.getProcessInstanceId(),
+                execution.getCurrentActivityId(),
+                typeRdv,
+                String.valueOf(creneauId));
+    }
+
+    private Long praticienId(DelegateExecution execution) {
+        Long praticienId = longVariable(execution, "praticienId");
+        return praticienId != null
+                ? praticienId
+                : requiredLongVariable(execution, "praticienMetierId");
+    }
+
+    private Long requiredLongVariable(DelegateExecution execution, String name) {
+        Long value = longVariable(execution, name);
+        if (value == null) {
+            throw new IllegalArgumentException(name + " obligatoire");
+        }
+        return value;
+    }
+
+    private Long longVariable(DelegateExecution execution, String name) {
+        Object value = execution.getVariable(name);
+        return value instanceof Number number ? number.longValue() : null;
+    }
+
+    private String stringVariable(
+            DelegateExecution execution,
+            String name,
+            String defaultValue) {
+
+        Object value = execution.getVariable(name);
+        return value instanceof String string && !string.isBlank()
+                ? string
+                : defaultValue;
+    }
+
+    private String requiredStringVariable(DelegateExecution execution, String name) {
+        String value = stringVariable(execution, name, null);
+        if (value == null) {
+            throw new IllegalArgumentException(name + " obligatoire");
+        }
+        return value;
     }
 }

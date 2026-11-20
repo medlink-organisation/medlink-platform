@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -38,7 +37,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Audited
-public class ResultatExamen  extends  AuditableEntity{
+public class ResultatExamen extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -50,7 +49,6 @@ public class ResultatExamen  extends  AuditableEntity{
     @Column(name = "date_examen", nullable = false)
     private LocalDate dateExamen;
 
-    @Lob
     @Column(name = "conclusion", columnDefinition = "TEXT")
     private String conclusion;
 

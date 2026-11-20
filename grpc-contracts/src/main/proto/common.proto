@@ -4,7 +4,7 @@ syntax = "proto3";
 package medilink.v1;
 
 option java_multiple_files = true;
-option java_package = "medlink.project.grpc.common";
+option java_package = "medlink.grpc.common.v1";
 
 message OperationResult {
   bool success = 1;

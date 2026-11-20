@@ -3,7 +3,7 @@ syntax = "proto3";
 package medilink.v1;
 
 option java_multiple_files = true;
-option java_package = "medlink.project.grpc.creneau";
+option java_package = "medlink.grpc.creaneau.v1";
 
 import "google/protobuf/timestamp.proto";
 
@@ -44,13 +44,13 @@ message CheckAvailabilityResponse {
 
 message ReserveCreneauRequest {
   int64 creneau_id = 1;
-  int64 rendez_vous_id = 2;
+  string rendez_vous_id = 2;
   string idempotency_key = 3;
 }
 
 message ReleaseCreneauRequest {
   int64 creneau_id = 1;
-  int64 rendez_vous_id = 2;
+  string rendez_vous_id = 2;
   string idempotency_key = 3;
 }
 

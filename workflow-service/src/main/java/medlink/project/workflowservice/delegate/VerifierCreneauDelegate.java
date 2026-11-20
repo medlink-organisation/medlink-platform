@@ -1,22 +1,32 @@
 package medlink.project.workflowservice.delegate;
 
+import lombok.RequiredArgsConstructor;
+import medlink.project.workflowservice.client.CreneauGrpcClient;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.delegate.JavaDelegate;
 import org.springframework.stereotype.Component;
 
-@Component("verifierCrenauDelegate")
+@Component("verifierCreneauDelegate")
+@RequiredArgsConstructor
 public class VerifierCreneauDelegate implements JavaDelegate {
-    private final RendezVousGateway rendezVousGateway ;
+
+    private final CreneauGrpcClient creneauGrpcClient;
+
     @Override
     public void execute(DelegateExecution execution) {
-        Long crenauId = (Long) execution.getVariable("crenauId");
-        if (crenauId == null ) {
-            throw  new  IllegalArgumentException( "crenauId obligatoire");
+        Long creneauId = longVariable(execution, "creneauId");
+        if (creneauId == null) {
+            throw new IllegalArgumentException("creneauId obligatoire");
         }
 
-        boolean libre =
-                rendezVousGateway.isCreneauLibre(creneauId);
+        execution.setVariable(
+                "creneauLibre",
+                creneauGrpcClient.isAvailable(creneauId)
+        );
+    }
 
-        execution.setVariable("creneauLibre", libre);
+    private Long longVariable(DelegateExecution execution, String name) {
+        Object value = execution.getVariable(name);
+        return value instanceof Number number ? number.longValue() : null;
     }
 }

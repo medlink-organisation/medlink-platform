@@ -7,6 +7,9 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import medlink.grpc.praticien.v1.CreatePraticienGrpcRequest;
 import medlink.grpc.praticien.v1.GetPraticienByKeycloakIdRequest;
+import medlink.grpc.praticien.v1.GetPraticienByIdRequest;
+import medlink.grpc.praticien.v1.ExistsActivePraticienRequest;
+import medlink.grpc.praticien.v1.ExistsActivePraticienResponse;
 import medlink.grpc.praticien.v1.PraticienGrpcResponse;
 import medlink.grpc.praticien.v1.PraticienGrpcServiceGrpc;
 import medlink.project.praticienservice.dto.PraticienDto;
@@ -117,4 +120,45 @@ public class PraticienGrpcEndpoint
                             .asRuntimeException()
             );
         }
-    }}
+    }
+
+    @Override
+    public void getPraticienById(
+            GetPraticienByIdRequest request,
+            StreamObserver<PraticienGrpcResponse> responseObserver) {
+        try {
+            if (request.getPraticienId() <= 0) {
+                throw Status.INVALID_ARGUMENT.withDescription("praticienId invalide")
+                        .asRuntimeException();
+            }
+            responseObserver.onNext(grpcMapper.toGrpc(
+                    praticienService.getById(request.getPraticienId())));
+            responseObserver.onCompleted();
+        } catch (StatusRuntimeException exception) {
+            responseObserver.onError(exception);
+        } catch (Exception exception) {
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription("Praticien introuvable")
+                    .asRuntimeException());
+        }
+    }
+
+    @Override
+    public void existsActivePraticien(
+            ExistsActivePraticienRequest request,
+            StreamObserver<ExistsActivePraticienResponse> responseObserver) {
+        boolean active = false;
+        if (request.getPraticienId() > 0) {
+            try {
+                active = Boolean.TRUE.equals(
+                        praticienService.getById(request.getPraticienId()).getActif());
+            } catch (Exception ignored) {
+                active = false;
+            }
+        }
+        responseObserver.onNext(ExistsActivePraticienResponse.newBuilder()
+                .setExistsAndActive(active)
+                .build());
+        responseObserver.onCompleted();
+    }
+}

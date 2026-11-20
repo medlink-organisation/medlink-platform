@@ -64,4 +64,20 @@ public class CreneauServiceImpl implements CreneauService {
     public boolean isDisponible(Long id) {
         return validator.isDisponible(id);
     }
+
+    @Override
+    @Transactional
+    public CreneauDto reserver(Long id) {
+        Creneau creneau = validator.validateDisponibleForUpdate(id);
+        creneau.setStatut(StatutCreneau.RESERVE);
+        return mapper.toDto(repository.save(creneau));
+    }
+
+    @Override
+    @Transactional
+    public CreneauDto liberer(Long id) {
+        Creneau creneau = validator.validateExists(id);
+        creneau.setStatut(StatutCreneau.DISPONIBLE);
+        return mapper.toDto(repository.save(creneau));
+    }
 }

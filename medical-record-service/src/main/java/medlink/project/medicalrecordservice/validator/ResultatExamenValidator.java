@@ -9,8 +9,8 @@ import medlink.project.medicalrecordservice.repository.DossierMedicalRepository;
 import medlink.project.medicalrecordservice.repository.ResultatExamenRepository;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor

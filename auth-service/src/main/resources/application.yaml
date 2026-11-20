@@ -1,6 +1,9 @@
 spring:
   application:
     name: auth-service
+  grpc:
+    server:
+      port: ${AUTH_GRPC_PORT:9091}
   profiles:
     active: ${SPRING_PROFILES_ACTIVE}
 

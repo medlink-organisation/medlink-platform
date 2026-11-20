@@ -41,7 +41,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Audited
-public class DossierMedical extends  AuditableEntity{
+public class DossierMedical extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -68,20 +68,13 @@ CREATE TABLE comptes_rendus (
         FOREIGN KEY (dossier_medical_id) REFERENCES dossiers_medicaux (id)
 );
 
-CREATE INDEX idx_dossiers_medicaux_patient_id
-    ON dossiers_medicaux (patient_id);
-CREATE INDEX idx_documents_medicaux_dossier_medical_id
-    ON documents_medicaux (dossier_medical_id);
-CREATE INDEX idx_documents_medicaux_object_key
-    ON documents_medicaux (object_key);
-CREATE INDEX idx_resultats_examens_dossier_medical_id
-    ON resultats_examens (dossier_medical_id);
-CREATE INDEX idx_comptes_rendus_dossier_medical_id
-    ON comptes_rendus (dossier_medical_id);
-CREATE INDEX idx_comptes_rendus_rendez_vous_id
-    ON comptes_rendus (rendez_vous_id);
-CREATE INDEX idx_comptes_rendus_praticien_id
-    ON comptes_rendus (praticien_id);
+CREATE INDEX idx_dossiers_medicaux_patient_id ON dossiers_medicaux (patient_id);
+CREATE INDEX idx_documents_medicaux_dossier_medical_id ON documents_medicaux (dossier_medical_id);
+CREATE INDEX idx_documents_medicaux_object_key ON documents_medicaux (object_key);
+CREATE INDEX idx_resultats_examens_dossier_medical_id ON resultats_examens (dossier_medical_id);
+CREATE INDEX idx_comptes_rendus_dossier_medical_id ON comptes_rendus (dossier_medical_id);
+CREATE INDEX idx_comptes_rendus_rendez_vous_id ON comptes_rendus (rendez_vous_id);
+CREATE INDEX idx_comptes_rendus_praticien_id ON comptes_rendus (praticien_id);
 
 CREATE TABLE dossiers_medicaux_aud (
     id BIGINT NOT NULL,

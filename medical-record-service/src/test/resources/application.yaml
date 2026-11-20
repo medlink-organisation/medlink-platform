@@ -21,6 +21,16 @@ spring:
 eureka:
   client:
     enabled: false
+security:
+  jwt:
+    resource-id: medical-record-service
+medical:
+  files:
+    max-pdf-size-bytes: 10485760
+clamav:
+  host: localhost
+  port: 3310
+  timeout: 1000
 minio:
   endpoint: http://localhost:9000
   access-key: test-access-key

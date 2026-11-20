@@ -5,8 +5,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface ServiceMedicaleRepository
         extends JpaRepository<ServiceMedicale, Long> {
+
+    Optional<ServiceMedicale> findByCodeIgnoreCaseAndCliniqueId(
+            String code,
+            Long cliniqueId
+    );
 
     Page<ServiceMedicale> findByCliniqueId(
             Long cliniqueId,

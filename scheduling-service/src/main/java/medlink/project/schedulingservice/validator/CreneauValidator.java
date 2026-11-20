@@ -95,6 +95,18 @@ public class CreneauValidator {
                 && creneau.getDateDebut().isAfter(LocalDateTime.now());
     }
 
+    public Creneau validateDisponibleForUpdate(Long id) {
+        Creneau creneau = creneauRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new RessourceNotExistException(
+                        "Le créneau recherché n'existe pas."
+                ));
+        if (creneau.getStatut() != StatutCreneau.DISPONIBLE
+                || !creneau.getDateDebut().isAfter(LocalDateTime.now())) {
+            throw new BusinessException("Le créneau n'est pas disponible.");
+        }
+        return creneau;
+    }
+
     private void validateDates(LocalDateTime debut, LocalDateTime fin) {
         if (debut == null || fin == null || !fin.isAfter(debut)) {
             throw new BusinessException(

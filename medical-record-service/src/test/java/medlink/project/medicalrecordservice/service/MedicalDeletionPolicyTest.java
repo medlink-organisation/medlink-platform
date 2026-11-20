@@ -3,20 +3,25 @@ package medlink.project.medicalrecordservice.service;
 import medlink.project.medicalrecordservice.entities.DocumentMedical;
 import medlink.project.medicalrecordservice.entities.DossierMedical;
 import medlink.project.medicalrecordservice.entities.ResultatExamen;
+import medlink.project.medicalrecordservice.entities.CompteRendu;
 import medlink.project.medicalrecordservice.security.authorization.AuthenticatedUserService;
 import medlink.project.medicalrecordservice.security.authorization.MedicalRecordAccessService;
 import medlink.project.medicalrecordservice.exception.BusinessValidationException;
 import medlink.project.medicalrecordservice.mapper.DossierMedicalMapper;
 import medlink.project.medicalrecordservice.mapper.ResultatExamenMapper;
+import medlink.project.medicalrecordservice.mapper.CompteRenduMapper;
+import medlink.project.medicalrecordservice.repository.CompteRenduRepository;
 import medlink.project.medicalrecordservice.repository.DossierMedicalRepository;
 import medlink.project.medicalrecordservice.repository.ResultatExamenRepository;
 import medlink.project.medicalrecordservice.service.impl.DossierMedicalServiceImpl;
 import medlink.project.medicalrecordservice.service.impl.ResultatExamenServiceImpl;
 import medlink.project.medicalrecordservice.service.impl.ResultatExamenPersistenceService;
+import medlink.project.medicalrecordservice.service.impl.CompteRenduServiceImpl;
 import medlink.project.medicalrecordservice.storage.ObjectStorageService;
 import medlink.project.medicalrecordservice.validator.DossierMedicalValidator;
 import medlink.project.medicalrecordservice.validator.FileSecurityValidator;
 import medlink.project.medicalrecordservice.validator.ResultatExamenValidator;
+import medlink.project.medicalrecordservice.validator.CompteRenduValidator;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -77,5 +82,27 @@ class MedicalDeletionPolicyTest {
 
         assertThrows(BusinessValidationException.class, () -> service.delete(examenId));
         verify(repository, never()).delete(examen);
+    }
+
+    @Test
+    void refusesToDeleteCompteRenduWithoutConservationPolicy() {
+        UUID compteRenduId = UUID.randomUUID();
+        CompteRenduRepository repository = mock(CompteRenduRepository.class);
+        CompteRenduValidator validator = mock(CompteRenduValidator.class);
+        CompteRendu compteRendu = CompteRendu.builder()
+                .id(compteRenduId)
+                .dossierMedical(DossierMedical.builder().id(1L).build())
+                .build();
+        when(validator.requireExists(compteRenduId)).thenReturn(compteRendu);
+        CompteRenduServiceImpl service = new CompteRenduServiceImpl(
+                repository,
+                validator,
+                mock(CompteRenduMapper.class),
+                mock(AuthenticatedUserService.class),
+                mock(MedicalRecordAccessService.class)
+        );
+
+        assertThrows(BusinessValidationException.class, () -> service.delete(compteRenduId));
+        verify(repository, never()).delete(compteRendu);
     }
 }

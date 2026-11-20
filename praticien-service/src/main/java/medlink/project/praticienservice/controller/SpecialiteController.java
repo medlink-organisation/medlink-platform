@@ -61,7 +61,7 @@ public class SpecialiteController {
         return ResponseEntity.ok(service.getByCode(code));
     }
 
-    @GetMapping("/getall ")
+    @GetMapping("/getall")
     public ResponseEntity<Page<SpecialiteDto>> getAll(
             @PageableDefault(size = 10, sort = "id")
             Pageable pageable

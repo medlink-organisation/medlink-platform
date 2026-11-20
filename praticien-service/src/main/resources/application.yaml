@@ -1,6 +1,9 @@
 spring:
   application:
     name: praticien-service
+  grpc:
+    server:
+      port: ${PRATICIEN_GRPC_PORT:9092}
 
   config:
     import:

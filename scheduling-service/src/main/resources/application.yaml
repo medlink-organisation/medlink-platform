@@ -3,6 +3,9 @@
 spring:
   application:
     name: scheduling-service
+  grpc:
+    server:
+      port: ${SCHEDULING_GRPC_PORT:9093}
 
   profiles:
     active: ${SPRING_PROFILES_ACTIVE}

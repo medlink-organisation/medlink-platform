@@ -5,8 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 @Repository
 public interface CliniqueRepository extends JpaRepository<Clinique, Long> {
+    Optional<Clinique> findByEmailIgnoreCase(String email);
+
     boolean existsByAdresse(String adresse);
     boolean existsByEmailIgnoreCase(String email);
 
