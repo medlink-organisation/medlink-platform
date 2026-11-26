@@ -1,0 +1,34 @@
+name: config-service CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+    paths:
+      - "config-service/**"
+      - "grpc-contracts/**"
+      - "pom.xml"
+      - ".github/workflows/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "config-service/**"
+      - "grpc-contracts/**"
+      - "pom.xml"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  service:
+    uses: ./.github/workflows/reusable-service-ci-cd.yml
+    with:
+      service: config-service
+      image_name: ihab0/config-service
+      gitops_file: values/local/applications/config-service.yaml
+    secrets: inherit

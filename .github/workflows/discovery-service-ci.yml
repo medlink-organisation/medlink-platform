@@ -1,0 +1,34 @@
+name: discovery-service CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+    paths:
+      - "discovery-service/**"
+      - "grpc-contracts/**"
+      - "pom.xml"
+      - ".github/workflows/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "discovery-service/**"
+      - "grpc-contracts/**"
+      - "pom.xml"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  service:
+    uses: ./.github/workflows/reusable-service-ci-cd.yml
+    with:
+      service: discovery-service
+      image_name: ihab0/discovery-service
+      gitops_file: values/local/applications/discovery-service.yaml
+    secrets: inherit

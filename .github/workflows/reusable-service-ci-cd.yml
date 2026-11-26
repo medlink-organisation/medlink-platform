@@ -1,0 +1,261 @@
+name: Reusable Spring service CI/CD
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: Maven module for the service
+        required: true
+        type: string
+      image_name:
+        description: Docker Hub image name
+        required: true
+        type: string
+      gitops_file:
+        description: GitOps values file to update
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Build ${{ inputs.service }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: "**/pom.xml"
+
+      - name: Build application
+        env:
+          SERVICE: ${{ inputs.service }}
+        run: |
+          chmod +x "$SERVICE/mvnw"
+          "./$SERVICE/mvnw" -B -f pom.xml -pl "$SERVICE" -am package -DskipTests
+
+      - name: Display generated files
+        env:
+          SERVICE: ${{ inputs.service }}
+        run: ls -lah "$SERVICE/target"
+
+      - name: Upload application JAR
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-jar-${{ inputs.service }}
+          path: ${{ inputs.service }}/target/*.jar
+          if-no-files-found: error
+          retention-days: 1
+
+  docker:
+    name: Publish Docker image
+    needs:
+      - ci
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Download application JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: application-jar-${{ inputs.service }}
+          path: ${{ inputs.service }}/target
+
+      - name: Display downloaded JAR
+        env:
+          SERVICE: ${{ inputs.service }}
+        run: ls -lah "$SERVICE/target"
+
+      - name: Extract and validate version
+        id: version
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Git tag: ${GITHUB_REF_NAME}"
+          echo "Docker version: ${VERSION}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: ${VERSION}"
+            echo "Expected format: v1.0.0"
+            exit 1
+          fi
+          echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate short commit SHA
+        id: commit
+        shell: bash
+        run: echo "value=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Verify version does not already exist
+        env:
+          IMAGE_NAME: ${{ inputs.image_name }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          IMAGE="${IMAGE_NAME}:${VERSION}"
+          echo "Checking Docker image: ${IMAGE}"
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "Docker image ${IMAGE} already exists. Create a new version."
+            exit 1
+          fi
+          echo "Version ${VERSION} is available."
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ inputs.service }}
+          file: ./${{ inputs.service }}/Dockerfile
+          push: true
+          tags: |
+            ${{ inputs.image_name }}:${{ steps.version.outputs.value }}
+            ${{ inputs.image_name }}:sha-${{ steps.commit.outputs.value }}
+          labels: |
+            org.opencontainers.image.title=${{ inputs.service }}
+            org.opencontainers.image.version=${{ steps.version.outputs.value }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Publish summary
+        env:
+          IMAGE_NAME: ${{ inputs.image_name }}
+          VERSION: ${{ steps.version.outputs.value }}
+          SHORT_SHA: ${{ steps.commit.outputs.value }}
+        run: |
+          echo "## Docker image published" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Image: \`${IMAGE_NAME}:${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit image: \`${IMAGE_NAME}:sha-${SHORT_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+
+  sonarqube:
+    name: SonarQube analysis
+    needs:
+      - docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: "**/pom.xml"
+
+      - name: Analyze service
+        env:
+          SERVICE: ${{ inputs.service }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [[ -z "$SONAR_HOST_URL" || -z "$SONAR_TOKEN" ]]; then
+            echo "SONAR_HOST_URL and SONAR_TOKEN secrets must be configured."
+            exit 1
+          fi
+          chmod +x "$SERVICE/mvnw"
+          PROJECT_KEY="${GITHUB_REPOSITORY//\//_}-${SERVICE}"
+          "./$SERVICE/mvnw" -B -f pom.xml -pl "$SERVICE" -am \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.host.url="$SONAR_HOST_URL" \
+            -Dsonar.projectKey="$PROJECT_KEY"
+
+  trivy:
+    name: Scan image with Trivy
+    needs:
+      - docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Scan published image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ inputs.image_name }}:${{ needs.docker.outputs.version }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+  update-gitops:
+    name: Update ${{ inputs.service }} in GitOps
+    needs:
+      - docker
+      - sonarqube
+      - trivy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out GitOps repository
+        uses: actions/checkout@v4
+        with:
+          repository: medlink-organisation/medlink-gitops
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Update image tag in values file
+        env:
+          VERSION: ${{ needs.docker.outputs.version }}
+          GITOPS_FILE: ${{ inputs.gitops_file }}
+        run: |
+          cd gitops
+          yq -i '.image.tag = strenv(VERSION)' "$GITOPS_FILE"
+          cat "$GITOPS_FILE"
+
+      - name: Commit and push
+        env:
+          VERSION: ${{ needs.docker.outputs.version }}
+          SERVICE: ${{ inputs.service }}
+          GITOPS_FILE: ${{ inputs.gitops_file }}
+        run: |
+          cd gitops
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$GITOPS_FILE"
+          if git diff --cached --quiet; then
+            echo "${SERVICE} is already using ${VERSION}"
+            exit 0
+          fi
+          git commit -m "chore: bump ${SERVICE} image to ${VERSION}"
+          for attempt in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin main && exit 0
+            git rebase --abort || true
+            sleep $((attempt * 2))
+          done
+          exit 1
