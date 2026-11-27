@@ -3,7 +3,7 @@ name: workflow-service CI/CD
 on:
   push:
     branches:
-      - main
+      - dev
     tags:
       - "v*.*.*"
     paths:
@@ -13,7 +13,7 @@ on:
       - ".github/workflows/**"
   pull_request:
     branches:
-      - main
+      - dev
     paths:
       - "workflow-service/**"
       - "grpc-contracts/**"
