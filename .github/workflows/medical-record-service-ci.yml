@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: medical-record-service
-      image_name: ihab0/medical-record-service
+      image_name: medaligd/medical-record-service
       gitops_file: values/local/applications/medical-record-service.yaml
     secrets: inherit
