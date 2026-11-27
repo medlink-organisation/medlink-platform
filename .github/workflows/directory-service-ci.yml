@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: directory-service
-      image_name: medaligd/directory-service
+      image_name: medaligdira/directory-service
       gitops_file: values/local/applications/directory-service.yaml
     secrets: inherit

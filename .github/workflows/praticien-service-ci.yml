@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: praticien-service
-      image_name: medaligd/praticien-service
+      image_name: medaligdira/praticien-service
       gitops_file: values/local/applications/praticien-service.yaml
     secrets: inherit

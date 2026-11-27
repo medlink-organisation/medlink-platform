@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: auth-service
-      image_name: medaligd/auth-service
+      image_name: medaligdira/auth-service
       gitops_file: values/local/applications/auth-service.yaml
     secrets: inherit

@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: config-service
-      image_name: medaligd/config-service
+      image_name: medaligdira/config-service
       gitops_file: values/local/applications/config-service.yaml
     secrets: inherit

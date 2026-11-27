@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: gateway-service
-      image_name: medaligd/gateway-service
+      image_name: medaligdira/gateway-service
       gitops_file: values/local/applications/gateway-service.yaml
     secrets: inherit
