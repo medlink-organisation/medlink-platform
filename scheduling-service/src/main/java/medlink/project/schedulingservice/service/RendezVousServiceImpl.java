@@ -121,15 +121,21 @@ public class RendezVousServiceImpl implements RendezVousService {
             Long praticienId,
             Pageable pageable
     ) {
-        return repository.findLatestCompletedByPraticien(
+
+        return repository.findPatientsByPraticien(
                 praticienId,
+                List.of(
+                        StatusRendezVous.CONFIRME,
+                        StatusRendezVous.TERMINE
+                ),
                 StatusRendezVous.TERMINE,
                 pageable
         ).map(rendezVous -> new PraticienPatientDto(
-                rendezVous.getPatientId(),
+                rendezVous.getPatientId().toString(),
                 rendezVous.getId(),
                 rendezVous.getCreneau().getDateDebut(),
-                rendezVous.getCreneau().getCliniqueId()
+                rendezVous.getCreneau().getCliniqueId(),
+                rendezVous.getStatus()
         ));
     }
 

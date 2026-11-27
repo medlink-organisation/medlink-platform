@@ -39,7 +39,7 @@ public interface RendezVousService {
             int minutesAfter
     );
 
-    Page<PraticienPatientDto> getPatientsByPraticien(
+     Page<PraticienPatientDto> getPatientsByPraticien(
             Long praticienId,
             Pageable pageable
     );

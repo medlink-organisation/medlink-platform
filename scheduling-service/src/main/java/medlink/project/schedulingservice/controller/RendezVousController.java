@@ -81,10 +81,13 @@ public class RendezVousController {
     ) {
         long praticienId = praticienIdentityService
                 .requireActivePraticienId(jwt.getSubject());
-        return ResponseEntity.ok(service.getPatientsByPraticien(
-                praticienId,
-                pageable
-        ));
+
+        return ResponseEntity.ok(
+                service.getPatientsByPraticien(
+                        praticienId,
+                        pageable
+                )
+        );
     }
 
     @PostMapping("/create")
