@@ -9,10 +9,12 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.grpc.client.GlobalClientInterceptor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @Configuration
+
 public class GrpcSecurityConfig {
 
     private static final Metadata.Key<String> AUTHORIZATION = Metadata.Key.of(
@@ -21,6 +23,7 @@ public class GrpcSecurityConfig {
     );
 
     @Bean
+    @GlobalClientInterceptor
     public ClientInterceptor grpcSecurityInterceptor() {
         return new ClientInterceptor() {
             @Override

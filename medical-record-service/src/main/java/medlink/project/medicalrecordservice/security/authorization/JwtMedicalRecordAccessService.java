@@ -2,6 +2,7 @@ package medlink.project.medicalrecordservice.security.authorization;
 
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import medlink.grpc.praticien.v1.GetPraticienByKeycloakIdRequest;
 import medlink.grpc.praticien.v1.PraticienGrpcServiceGrpc;
 import medlink.grpc.rendezvous.v1.GetRendezVousRequest;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JwtMedicalRecordAccessService implements MedicalRecordAccessService {
 
     private final AuthenticatedUserService authenticatedUserService;
@@ -61,37 +63,86 @@ public class JwtMedicalRecordAccessService implements MedicalRecordAccessService
 
     @Override
     public Long requireRecordIdForAppointment(UUID rendezVousId) {
-        JwtAuthenticationToken authentication = authenticatedUserService.requireAuthenticatedJwt();
+
+        JwtAuthenticationToken authentication =
+                authenticatedUserService.requireAuthenticatedJwt();
+
         requireRole(authentication, "PRATICIEN");
+
         if (rendezVousId == null) {
             deny();
         }
 
         try {
-            var praticien = praticienStub.withDeadlineAfter(3, TimeUnit.SECONDS)
-                    .getPraticienByKeycloakId(GetPraticienByKeycloakIdRequest.newBuilder()
-                            .setKeycloakId(authentication.getToken().getSubject())
-                            .build());
+
+            var praticien = praticienStub
+                    .withDeadlineAfter(3, TimeUnit.SECONDS)
+                    .getPraticienByKeycloakId(
+                            GetPraticienByKeycloakIdRequest.newBuilder()
+                                    .setKeycloakId(
+                                            authentication.getToken().getSubject()
+                                    )
+                                    .build()
+                    );
+
             if (!praticien.getActif()) {
+
+                log.warn("Accès refusé : praticien inactif");
+
                 deny();
             }
 
-            var rendezVous = rendezVousStub.withDeadlineAfter(3, TimeUnit.SECONDS)
-                    .getRendezVous(GetRendezVousRequest.newBuilder()
-                            .setRendezVousId(rendezVousId.toString())
-                            .build());
-            if (rendezVous.getPraticienId() != praticien.getId()
-                    || rendezVous.getStatus() != RendezVousStatus.RDV_COMPLETED) {
+            var rendezVous = rendezVousStub
+                    .withDeadlineAfter(3, TimeUnit.SECONDS)
+                    .getRendezVous(
+                            GetRendezVousRequest.newBuilder()
+                                    .setRendezVousId(rendezVousId.toString())
+                                    .build()
+                    );
+
+            if (rendezVous.getPraticienId() != praticien.getId()) {
+
+                log.warn(
+                        "Accès refusé : rendez-vous rattaché à un autre praticien"
+                );
+
                 deny();
             }
-            return dossierRepository.findByPatientId(rendezVous.getPatientId())
+
+            if (rendezVous.getStatus() != RendezVousStatus.RDV_COMPLETED) {
+
+                log.warn(
+                        "Accès refusé : statut du rendez-vous = {}",
+                        rendezVous.getStatus()
+                );
+
+                deny();
+            }
+
+            return dossierRepository
+                    .findByPatientId(rendezVous.getPatientId())
                     .map(DossierMedical::getId)
-                    .orElseThrow(() -> new AccessDeniedException(
-                            "Aucun dossier médical n'est rattaché à ce rendez-vous."
-                    ));
+                    .orElseThrow(() -> {
+
+                        log.warn(
+                                "Accès refusé : aucun dossier médical correspondant"
+                        );
+
+                        return new AccessDeniedException(
+                                "Aucun dossier médical correspondant."
+                        );
+                    });
+
         } catch (StatusRuntimeException exception) {
+
+            log.warn(
+                    "Erreur gRPC pendant la vérification du dossier médical : {} - {}",
+                    exception.getStatus().getCode(),
+                    exception.getStatus().getDescription()
+            );
+
             throw new AccessDeniedException(
-                    "Le rendez-vous ne permet pas l'ajout de ce résultat médical.",
+                    "Impossible de vérifier l'accès au dossier médical.",
                     exception
             );
         }
