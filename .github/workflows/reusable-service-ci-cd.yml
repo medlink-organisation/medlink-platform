@@ -61,7 +61,7 @@ jobs:
   sonarqube:
     name: SonarQube analysis
     needs:
-      - docker
+      - ci
     runs-on: ubuntu-latest
 
     steps:
@@ -93,33 +93,11 @@ jobs:
             -Dsonar.host.url="$SONAR_HOST_URL" \
             -Dsonar.projectKey="$PROJECT_KEY"
 
-  trivy:
-    name: Scan image with Trivy
-    needs:
-      - docker
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Scan published image
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ inputs.image_name }}:${{ needs.docker.outputs.version }}
-          format: table
-          exit-code: "1"
-          ignore-unfixed: true
-          vuln-type: os,library
-          severity: CRITICAL,HIGH
-          
   docker:
     name: Publish Docker image
     needs:
       - ci
+      - sonarqube
     if: github.event_name == 'push' && github.ref_type == 'tag'
     runs-on: ubuntu-latest
     outputs:
@@ -208,6 +186,30 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Image: \`${IMAGE_NAME}:${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Commit image: \`${IMAGE_NAME}:sha-${SHORT_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+
+  trivy:
+    name: Scan image with Trivy
+    needs:
+      - docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Scan published image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ inputs.image_name }}:${{ needs.docker.outputs.version }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
 
   update-gitops:
     name: Update ${{ inputs.service }} in GitOps
