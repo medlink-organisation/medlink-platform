@@ -8,7 +8,7 @@ import java.util.UUID;
 public record PraticienPatientDto(
         String patientId,
         UUID lastRendezVousId,
-        LocalDateTime lastConsultationAt,
+        LocalDateTime lastRendezVousAt,
         Long cliniqueId,
         StatusRendezVous status
 ) {

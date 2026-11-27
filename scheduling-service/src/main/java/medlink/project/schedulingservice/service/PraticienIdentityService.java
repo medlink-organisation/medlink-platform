@@ -2,6 +2,7 @@ package medlink.project.schedulingservice.service;
 
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import medlink.grpc.praticien.v1.GetPraticienByKeycloakIdRequest;
 import medlink.grpc.praticien.v1.PraticienGrpcServiceGrpc;
 import medlink.project.schedulingservice.exception.BusinessException;
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PraticienIdentityService {
 
     private final PraticienGrpcServiceGrpc.PraticienGrpcServiceBlockingStub stub;
@@ -29,8 +31,18 @@ public class PraticienIdentityService {
                 throw new BusinessException("Le compte praticien est inactif.");
             }
             return response.getId();
-        } catch (StatusRuntimeException exception) {
-            throw new BusinessException("Impossible de résoudre le praticien connecté.");
+        }catch (StatusRuntimeException exception) {
+
+            log.warn(
+                    "Erreur gRPC praticien-service : {} - {}",
+                    exception.getStatus().getCode(),
+                    exception.getStatus().getDescription(),
+                    exception
+            );
+
+            throw new BusinessException(
+                    "Impossible de résoudre le praticien connecté."
+            );
         }
     }
 }
