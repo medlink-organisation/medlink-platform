@@ -201,45 +201,29 @@ public class KeycloakUserService {
     }
 
     public PatientPageResponse getAllPatients(int first, int max) {
+
         patientValidator.validatePagination(first, max);
 
         RealmResource realm = keycloak.realm(props.getRealm());
-        List<PatientResponse> patients = new ArrayList<>(max + 1);
-        int userOffset = 0;
-        int patientOffset = 0;
-        final int batchSize = 100;
 
-        while (patients.size() <= max) {
-            List<UserRepresentation> users = realm.users().list(userOffset, batchSize);
-            if (users.isEmpty()) {
-                break;
-            }
-
-            for (UserRepresentation user : users) {
-                if (!isPatientAccount(realm, user)) {
-                    continue;
-                }
-                if (patientOffset++ < first) {
-                    continue;
-                }
-
-                patients.add(PatientResponse.from(user));
-                if (patients.size() > max) {
-                    break;
-                }
-            }
-
-            userOffset += users.size();
-            if (users.size() < batchSize) {
-                break;
-            }
-        }
+        List<UserRepresentation> patients = realm.roles()
+                .get(PATIENT_ROLE)
+                .getUserMembers(first, max + 1);
 
         boolean hasNext = patients.size() > max;
-        List<PatientResponse> content = patients.stream().limit(max).toList();
-        return new PatientPageResponse(content, first, max, hasNext);
-    }
 
+        List<PatientResponse> content = patients.stream()
+                .limit(max)
+                .map(PatientResponse::from)
+                .toList();
+
+        return new PatientPageResponse(
+                content,
+                first,
+                max,
+                hasNext
+        );
+    }
     public PatientPageResponse getAllPatients() {
         return getAllPatients(0, 20);
     }
