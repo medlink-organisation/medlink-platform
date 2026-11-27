@@ -6,15 +6,13 @@ import medlink.project.authservice.dto.PatientPageResponse;
 import medlink.project.authservice.dto.PatientResponse;
 import medlink.project.authservice.dto.UpdatePatientContactRequest;
 import medlink.project.authservice.service.KeycloakUserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -29,6 +27,23 @@ public class PatientController {
     @GetMapping("/{keycloakId}")
     public PatientResponse getById(@PathVariable String keycloakId) {
         return keycloakUserService.getPatientById(keycloakId);
+    }
+    @PostMapping("/me/initialize")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<Void> initializePatient(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        PatientResponse patient = keycloakUserService
+                .resolveActivePatient(jwt.getSubject());
+
+        if (!patient.enabled() || patient.businessPatientId() <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Identité patient invalide"
+            );
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/getall")
