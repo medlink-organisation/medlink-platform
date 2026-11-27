@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: workflow-service
-      image_name: ihab0/workflow-service
+      image_name: medaligd/workflow-service
       gitops_file: values/local/applications/workflow-service.yaml
     secrets: inherit

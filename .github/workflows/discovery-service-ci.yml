@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: discovery-service
-      image_name: ihab0/discovery-service
+      image_name: medaligd/discovery-service
       gitops_file: values/local/applications/discovery-service.yaml
     secrets: inherit

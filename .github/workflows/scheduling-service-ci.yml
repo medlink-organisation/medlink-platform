@@ -29,6 +29,6 @@ jobs:
     uses: ./.github/workflows/reusable-service-ci-cd.yml
     with:
       service: scheduling-service
-      image_name: ihab0/scheduling-service
+      image_name: medaligd/scheduling-service
       gitops_file: values/local/applications/scheduling-service.yaml
     secrets: inherit
