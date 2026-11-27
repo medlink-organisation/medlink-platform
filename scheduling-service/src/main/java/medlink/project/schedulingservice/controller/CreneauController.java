@@ -134,14 +134,21 @@ public class CreneauController {
     @PreAuthorize("hasRole('PRATICIEN')")
     public ResponseEntity<List<CreneauDto>> getMyCalendar(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam LocalDateTime debut,
-            @RequestParam LocalDateTime fin
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime debut,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime fin
     ) {
         long praticienId = praticienIdentityService
                 .requireActivePraticienId(jwt.getSubject());
-        return ResponseEntity.ok(service.getCalendar(
-                praticienId, null, debut, fin
-        ));
+
+        return ResponseEntity.ok(
+                service.getCalendar(praticienId, null, debut, fin)
+        );
     }
 
     @GetMapping("/get-by-praticien-id/{praticienId}")
