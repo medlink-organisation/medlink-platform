@@ -16,6 +16,8 @@ public interface WorkflowService {
 
     Optional<WorkflowInstance> findByBusinessKey(String businessKey);
 
+    Optional<WorkflowInstance> findActiveByRendezVousId(String rendezVousId);
+
     WorkflowStatus getStatus(String processInstanceId);
 
     List<WorkflowTask> getTasks(String processInstanceId);

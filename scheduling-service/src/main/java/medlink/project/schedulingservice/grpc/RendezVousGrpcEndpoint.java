@@ -59,7 +59,10 @@ public class RendezVousGrpcEndpoint extends RendezVousGrpcServiceGrpc.RendezVous
                                  StreamObserver<RendezVousResponse> observer) {
         execute(observer, () -> {
             requireText(request.getIdempotencyKey(), "idempotencyKey");
-            return toResponse(rendezVousService.annuler(uuid(request.getRendezVousId())));
+            return toResponse(rendezVousService.annulerForPatient(
+                    uuid(request.getRendezVousId()),
+                    positive(request.getPatientId(), "patientId")
+            ));
         });
     }
 
@@ -68,8 +71,11 @@ public class RendezVousGrpcEndpoint extends RendezVousGrpcServiceGrpc.RendezVous
                                      StreamObserver<RendezVousResponse> observer) {
         execute(observer, () -> {
             requireText(request.getIdempotencyKey(), "idempotencyKey");
-            return toResponse(rendezVousService.reporter(uuid(request.getRendezVousId()),
-                    positive(request.getNewCreneauId(), "newCreneauId")));
+            return toResponse(rendezVousService.reporterForPatient(
+                    uuid(request.getRendezVousId()),
+                    positive(request.getNewCreneauId(), "newCreneauId"),
+                    positive(request.getPatientId(), "patientId")
+            ));
         });
     }
 

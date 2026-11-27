@@ -16,6 +16,7 @@ public class LibererCreneauDelegate implements JavaDelegate {
     public void execute(DelegateExecution execution) {
         rendezVousGrpcClient.cancel(
                 requiredString(execution, "rdvId"),
+                requiredLong(execution, "patientId"),
                 stringValue(execution, "annulationMotif", "Annulation du rendez-vous"),
                 operationId(execution)
         );
@@ -38,6 +39,14 @@ public class LibererCreneauDelegate implements JavaDelegate {
         return value instanceof String string && !string.isBlank()
                 ? string
                 : defaultValue;
+    }
+
+    private Long requiredLong(DelegateExecution execution, String name) {
+        Object value = execution.getVariable(name);
+        if (value instanceof Number number && number.longValue() > 0) {
+            return number.longValue();
+        }
+        throw new IllegalArgumentException(name + " obligatoire");
     }
 
     private String operationId(DelegateExecution execution) {

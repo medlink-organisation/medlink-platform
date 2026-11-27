@@ -13,29 +13,30 @@ import medlink.project.schedulingservice.repositories.RendezVousRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class RendezVousValidator {
 
+    private static final List<StatusRendezVous> ACTIVE_STATUSES = List.of(
+            StatusRendezVous.EN_ATTENTE,
+            StatusRendezVous.CONFIRME
+    );
+
     private final RendezVousRepository rendezVousRepository;
     private final CreneauRepository creneauRepository;
 
     public Creneau validateCreate(Long patientId, Long creneauId) {
+        rendezVousRepository.lockPatientReservations(patientId);
         Creneau creneau = validateCreneauDisponible(creneauId);
-        validateNoDuplicate(patientId, creneauId, null);
+        validateBookingRules(patientId, creneau, null);
         return creneau;
     }
 
     public RendezVous validateUpdate(UUID rendezVousId) {
-        RendezVous rendezVous = validateExists(rendezVousId);
-        validateNoDuplicate(
-                rendezVous.getPatientId(),
-                rendezVous.getCreneau().getId(),
-                rendezVousId
-        );
-        return rendezVous;
+        return validateExists(rendezVousId);
     }
 
     public RendezVous validateExists(UUID id) {
@@ -58,14 +59,46 @@ public class RendezVousValidator {
     }
 
     public RendezVous validateActive(UUID id) {
-        RendezVous rendezVous = validateExists(id);
-        validateActive(rendezVous);
+        RendezVous snapshot = validateExists(id);
+        rendezVousRepository.lockPatientReservations(snapshot.getPatientId());
+        RendezVous rendezVous = findForUpdate(id);
+        if (!isActive(rendezVous)) {
+            throw new BusinessException("Le rendez-vous est déjà clôturé.");
+        }
+        return rendezVous;
+    }
+
+    public RendezVous validatePatientAction(UUID id, Long patientId) {
+        if (patientId == null || patientId <= 0) {
+            throw new BusinessException("L'identité du patient est invalide.");
+        }
+        RendezVous snapshot = validateExists(id);
+        if (!patientId.equals(snapshot.getPatientId())) {
+            throw new RessourceNotExistException(
+                    "Le rendez-vous recherché n'existe pas."
+            );
+        }
+        rendezVousRepository.lockPatientReservations(patientId);
+        RendezVous rendezVous = findForUpdate(id);
+        if (!patientId.equals(rendezVous.getPatientId())) {
+            throw new RessourceNotExistException(
+                    "Le rendez-vous recherché n'existe pas."
+            );
+        }
+        validateModifiable(rendezVous);
         return rendezVous;
     }
 
     public Creneau validateReport(RendezVous rendezVous, Long nouveauCreneauId) {
         Creneau nouveauCreneau = validateCreneauDisponible(nouveauCreneauId);
-        validateNoDuplicate(rendezVous.getPatientId(), nouveauCreneauId, rendezVous.getId());
+        Creneau ancienCreneau = rendezVous.getCreneau();
+        if (!ancienCreneau.getPraticienId().equals(nouveauCreneau.getPraticienId())
+                || !ancienCreneau.getCliniqueId().equals(nouveauCreneau.getCliniqueId())) {
+            throw new BusinessException(
+                    "Le nouveau créneau doit appartenir au même praticien et à la même clinique."
+            );
+        }
+        validateBookingRules(rendezVous.getPatientId(), nouveauCreneau, rendezVous.getId());
         return nouveauCreneau;
     }
 
@@ -87,26 +120,52 @@ public class RendezVousValidator {
                 || rendezVous.getStatus() == StatusRendezVous.CONFIRME;
     }
 
-    private void validateActive(RendezVous rendezVous) {
+    private void validateModifiable(RendezVous rendezVous) {
         if (!isActive(rendezVous)) {
             throw new BusinessException("Le rendez-vous est déjà clôturé.");
         }
-    }
-
-    private void validateNoDuplicate(Long patientId, Long creneauId, UUID excludedId) {
-        boolean duplicate = excludedId == null
-                ? rendezVousRepository.existsByPatientIdAndCreneauId(patientId, creneauId)
-                : rendezVousRepository.existsByPatientIdAndCreneauIdAndIdNot(
-                        patientId,
-                        creneauId,
-                        excludedId
-                );
-
-        if (duplicate) {
-            throw new RessourceAlreadyExistException(
-                    "Vous avez déjà un rendez-vous pour ce créneau."
+        if (!rendezVous.getCreneau().getDateDebut().isAfter(LocalDateTime.now())) {
+            throw new BusinessException(
+                    "Un rendez-vous déjà commencé ne peut plus être modifié ou annulé."
             );
         }
+    }
+
+    private void validateBookingRules(
+            Long patientId,
+            Creneau creneau,
+            UUID excludedId
+    ) {
+        if (rendezVousRepository.existsActiveWithPraticien(
+                patientId,
+                creneau.getPraticienId(),
+                ACTIVE_STATUSES,
+                excludedId
+        )) {
+            throw new RessourceAlreadyExistException(
+                    "Vous avez déjà un rendez-vous actif avec ce praticien. "
+                            + "Vous pouvez le modifier ou l'annuler depuis Mes rendez-vous."
+            );
+        }
+
+        if (rendezVousRepository.existsActiveOverlapping(
+                patientId,
+                creneau.getDateDebut(),
+                creneau.getDateFin(),
+                ACTIVE_STATUSES,
+                excludedId
+        )) {
+            throw new RessourceAlreadyExistException(
+                    "Vous avez déjà un rendez-vous prévu pendant cette période."
+            );
+        }
+    }
+
+    private RendezVous findForUpdate(UUID id) {
+        return rendezVousRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new RessourceNotExistException(
+                        "Le rendez-vous recherché n'existe pas."
+                ));
     }
 
     private BusinessException invalidTransition(

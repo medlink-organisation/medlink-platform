@@ -53,7 +53,11 @@ public interface RendezVousService {
 
     RendezVousDto annuler(UUID id);
 
+    RendezVousDto annulerForPatient(UUID id, Long patientId);
+
     RendezVousDto reporter(UUID id, Long nouveauCreneauId);
+
+    RendezVousDto reporterForPatient(UUID id, Long nouveauCreneauId, Long patientId);
 
     RendezVousDto marquerAbsent(UUID id);
 

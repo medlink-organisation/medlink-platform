@@ -27,6 +27,7 @@ public class EnregistrerRdvDelegate implements JavaDelegate {
         if (Boolean.TRUE.equals(execution.getVariable("reportRdv"))) {
             rdv = rendezVousGrpcClient.reschedule(
                     requiredStringVariable(execution, "rdvId"),
+                    requiredLongVariable(execution, "patientId"),
                     creneauId,
                     operationId
             );

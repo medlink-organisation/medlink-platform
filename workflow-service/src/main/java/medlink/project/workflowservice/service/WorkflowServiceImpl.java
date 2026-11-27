@@ -88,6 +88,21 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
+    public Optional<WorkflowInstance> findActiveByRendezVousId(String rendezVousId) {
+        validator.requireText(rendezVousId, "rendezVousId");
+        ProcessInstance process = runtimeService.createProcessInstanceQuery()
+                .variableValueEquals("rdvId", rendezVousId)
+                .active()
+                .singleResult();
+        return process == null
+                ? Optional.empty()
+                : Optional.of(new WorkflowInstance(
+                        process.getId(),
+                        process.getBusinessKey()
+                ));
+    }
+
+    @Override
     public WorkflowStatus getStatus(String processInstanceId) {
         validator.requireText(processInstanceId, "processInstanceId");
         ProcessInstance process = runtimeService.createProcessInstanceQuery()

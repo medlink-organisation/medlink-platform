@@ -79,6 +79,14 @@ public class SpecialiteController {
         return ResponseEntity.ok(service.getActiveForBooking(pageable));
     }
 
+    @GetMapping("/booking/{id}")
+    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    public ResponseEntity<BookingSpecialiteDto> getForBooking(@PathVariable Long id) {
+        SpecialiteDto specialite = service.getById(id);
+        return ResponseEntity.ok(new BookingSpecialiteDto(
+                specialite.getId(), specialite.getCode(), specialite.getNom(), specialite.getDescription()));
+    }
+
     @PatchMapping("/change-status/{id}")
     public ResponseEntity<SpecialiteDto> changeStatus(
             @PathVariable Long id,

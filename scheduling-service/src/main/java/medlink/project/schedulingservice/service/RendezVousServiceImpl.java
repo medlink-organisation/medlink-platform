@@ -12,6 +12,7 @@ import medlink.project.schedulingservice.entities.RendezVous;
 import medlink.project.schedulingservice.entities.StatusRendezVous;
 import medlink.project.schedulingservice.entities.StatutCreneau;
 import medlink.project.schedulingservice.exception.BusinessException;
+import medlink.project.schedulingservice.exception.RessourceAlreadyExistException;
 import medlink.project.schedulingservice.exception.ExternalServiceException;
 import medlink.project.schedulingservice.mapper.RendezVousMapper;
 import medlink.project.schedulingservice.repositories.CreneauRepository;
@@ -189,6 +190,16 @@ public class RendezVousServiceImpl implements RendezVousService {
     @Transactional
     public RendezVousDto annuler(UUID id) {
         RendezVous rendezVous = validator.validateActive(id);
+        return cancel(rendezVous);
+    }
+
+    @Override
+    @Transactional
+    public RendezVousDto annulerForPatient(UUID id, Long patientId) {
+        return cancel(validator.validatePatientAction(id, patientId));
+    }
+
+    private RendezVousDto cancel(RendezVous rendezVous) {
         rendezVous.setStatus(StatusRendezVous.ANNULE);
         rendezVous.getCreneau().setStatut(StatutCreneau.DISPONIBLE);
         creneauRepository.save(rendezVous.getCreneau());
@@ -199,6 +210,23 @@ public class RendezVousServiceImpl implements RendezVousService {
     @Transactional
     public RendezVousDto reporter(UUID id, Long nouveauCreneauId) {
         RendezVous rendezVous = validator.validateActive(id);
+        return reschedule(rendezVous, nouveauCreneauId);
+    }
+
+    @Override
+    @Transactional
+    public RendezVousDto reporterForPatient(
+            UUID id,
+            Long nouveauCreneauId,
+            Long patientId
+    ) {
+        return reschedule(
+                validator.validatePatientAction(id, patientId),
+                nouveauCreneauId
+        );
+    }
+
+    private RendezVousDto reschedule(RendezVous rendezVous, Long nouveauCreneauId) {
 
         Creneau ancienCreneau = rendezVous.getCreneau();
         if (ancienCreneau.getId().equals(nouveauCreneauId)) {
@@ -238,7 +266,7 @@ public class RendezVousServiceImpl implements RendezVousService {
         try {
             return mapper.toDto(repository.saveAndFlush(rendezVous));
         } catch (DataIntegrityViolationException exception) {
-            throw new BusinessException(
+            throw new RessourceAlreadyExistException(
                     "Le créneau vient d'être réservé par un autre patient.");
         }
     }

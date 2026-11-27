@@ -61,12 +61,14 @@ public class RendezVousGrpcClient {
 
     public RendezVousResponse cancel(
             String rendezVousId,
+            Long patientId,
             String reason,
             String idempotencyKey) {
 
         CancelRendezVousRequest request =
                 CancelRendezVousRequest.newBuilder()
                         .setRendezVousId(rendezVousId)
+                        .setPatientId(patientId)
                         .setReason(reason)
                         .setIdempotencyKey(idempotencyKey)
                         .build();
@@ -76,12 +78,14 @@ public class RendezVousGrpcClient {
 
     public RendezVousResponse reschedule(
             String rendezVousId,
+            Long patientId,
             Long newCreneauId,
             String idempotencyKey) {
 
         RescheduleRendezVousRequest request =
                 RescheduleRendezVousRequest.newBuilder()
                         .setRendezVousId(rendezVousId)
+                        .setPatientId(patientId)
                         .setNewCreneauId(newCreneauId)
                         .setIdempotencyKey(idempotencyKey)
                         .build();

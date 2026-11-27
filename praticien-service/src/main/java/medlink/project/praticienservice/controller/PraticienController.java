@@ -108,6 +108,15 @@ public class PraticienController {
     ) {
         return ResponseEntity.ok(service.getActiveForBooking(specialiteId, pageable));
     }
+
+    @GetMapping("/booking/{id}")
+    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    public ResponseEntity<BookingPraticienDto> getForBooking(@PathVariable Long id) {
+        PraticienDto praticien = service.getById(id);
+        return ResponseEntity.ok(new BookingPraticienDto(
+                praticien.getId(), praticien.getNom(), praticien.getPrenom(), praticien.getSpecialiteId()));
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
 
     @PatchMapping("/change-status/{id}")

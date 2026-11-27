@@ -56,6 +56,14 @@ public class CliniqueController {
                         clinique.getId(), clinique.getNom(), clinique.getVille())));
     }
 
+    @GetMapping("/booking/{id}")
+    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    public ResponseEntity<BookingCliniqueDto> getForBooking(@PathVariable Long id) {
+        CliniqueDto clinique = cliniqueService.getById(id);
+        return ResponseEntity.ok(new BookingCliniqueDto(
+                clinique.getId(), clinique.getNom(), clinique.getVille()));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<Page<CliniqueDto>> search(
             @RequestParam String keyword,
