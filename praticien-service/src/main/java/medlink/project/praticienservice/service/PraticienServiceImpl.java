@@ -2,6 +2,7 @@ package medlink.project.praticienservice.service;
 
 import lombok.RequiredArgsConstructor;
 import medlink.project.praticienservice.dto.PraticienDto;
+import medlink.project.praticienservice.dto.BookingPraticienDto;
 import medlink.project.praticienservice.entity.Praticien;
 import medlink.project.praticienservice.entity.Specialite;
 import medlink.project.praticienservice.exception.BusinessException;
@@ -118,6 +119,17 @@ public class PraticienServiceImpl implements PraticienService {
         return repository
                 .findBySpecialiteId(specialiteId, pageable)
                 .map(mapper::toDto);
+    }
+
+    @Override
+    public Page<BookingPraticienDto> getActiveForBooking(
+            Long specialiteId,
+            Pageable pageable) {
+        specialiteValidator.validateExists(specialiteId);
+        return repository.findBySpecialiteIdAndActifTrue(specialiteId, pageable)
+                .map(praticien -> new BookingPraticienDto(
+                        praticien.getId(), praticien.getNom(), praticien.getPrenom(),
+                        praticien.getSpecialite().getId()));
     }
     @Override
     @Transactional

@@ -2,10 +2,12 @@ package medlink.project.schedulingservice.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.envers.Audited;
 
 import java.util.UUID;
 
 @Entity
+@Audited
 @Table(
         name = "rendez_vous",
         indexes = {

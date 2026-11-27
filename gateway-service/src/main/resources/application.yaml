@@ -31,6 +31,23 @@ spring:
             locator:
               enabled: true
               lower-case-service-id: true
+          routes:
+            - id: notification-api-prefixed
+              uri: lb://notification-service
+              predicates:
+                - Path=/notification-service/api/notifications,/notification-service/api/notifications/**
+              filters:
+                - StripPrefix=1
+            - id: notification-api
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/notifications,/api/notifications/**
+            - id: notification-audit
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/admin/audit/notification,/api/admin/audit/notification/**
+              filters:
+                - RewritePath=/api/admin/audit/notification(?<segment>/?.*), /api/admin/audit$\{segment}
 
 
 

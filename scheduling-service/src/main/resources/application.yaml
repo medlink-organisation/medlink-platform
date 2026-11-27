@@ -6,9 +6,13 @@ spring:
   grpc:
     server:
       port: ${SCHEDULING_GRPC_PORT:9093}
+    client:
+      channel:
+        praticien-service:
+          target: ${PRATICIEN_GRPC_TARGET:static://localhost:9092}
 
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE}
+    active: ${SPRING_PROFILES_ACTIVE:default}
 
   config:
     import:
@@ -27,4 +31,19 @@ spring:
         enabled: true
         backend: secret
         backend-version: 2
+
+medlink:
+  directory:
+    base-url: ${DIRECTORY_SERVICE_URL:http://directory-service:8060}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  grpc:
+    client:
+      channel:
+        praticien-service:
+          target: ${PRATICIEN_GRPC_TARGET:static://praticien-service:9092}
 

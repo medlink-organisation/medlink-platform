@@ -13,6 +13,7 @@ import medlink.project.authservice.validation.PatientValidator;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
@@ -21,14 +22,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.ws.rs.NotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class KeycloakUserService {
 
     private static final String PATIENT_ROLE = "PATIENT";
+    private static final String PRATICIEN_ROLE = "PRATICIEN";
+    private static final String PATIENT_ID_ATTRIBUTE = "patient_id";
 
     private final Keycloak keycloak;
     private final KeycloakAdminProperties props;
@@ -36,15 +41,7 @@ public class KeycloakUserService {
 
     public String createUser(CreatePraticienRequest request) {
 
-        UserRepresentation user = new UserRepresentation();
-
-        user.setUsername(request.email());
-        user.setEmail(request.email());
-        user.setFirstName(request.prenom());
-        user.setLastName(request.nom());
-
-        user.setEnabled(false);
-        user.setEmailVerified(false);
+        UserRepresentation user = buildPraticienUser(request);
 
         RealmResource realm = keycloak.realm(props.getRealm());
 
@@ -67,12 +64,33 @@ public class KeycloakUserService {
         }
     }
 
+    UserRepresentation buildPraticienUser(CreatePraticienRequest request) {
+
+        UserRepresentation user = new UserRepresentation();
+
+        user.setUsername(request.email());
+        user.setEmail(request.email());
+        user.setFirstName(request.prenom());
+        user.setLastName(request.nom());
+
+        user.setEnabled(true);
+        user.setEmailVerified(false);
+
+        CredentialRepresentation temporaryPassword = new CredentialRepresentation();
+        temporaryPassword.setType(CredentialRepresentation.PASSWORD);
+        temporaryPassword.setValue(props.getPraticienTemporaryPassword());
+        temporaryPassword.setTemporary(true);
+        user.setCredentials(List.of(temporaryPassword));
+
+        return user;
+    }
+
     public void assignPraticienRole(String keycloakId) {
 
         RealmResource realm = keycloak.realm(props.getRealm());
 
         RoleRepresentation role = realm.roles()
-                .get("PRATICIEN")
+                .get(PRATICIEN_ROLE)
                 .toRepresentation();
 
         realm.users()
@@ -150,6 +168,24 @@ public class KeycloakUserService {
         } catch (NotFoundException exception) {
             throw patientNotFound(normalizedId);
         }
+    }
+
+    public PatientResponse resolveActivePatient(String keycloakId) {
+        String normalizedId = patientValidator.requireKeycloakId(keycloakId);
+        PatientResponse patient = getPatientById(normalizedId);
+
+        RealmResource realm = keycloak.realm(props.getRealm());
+        var userResource = realm.users().get(normalizedId);
+        UserRepresentation user = userResource.toRepresentation();
+
+        if (!patient.enabled()) {
+            return PatientResponse.from(user, 0L);
+        }
+
+        return PatientResponse.from(
+                user,
+                resolveBusinessPatientId(realm, normalizedId)
+        );
     }
 
     public PatientPageResponse getAllPatients(int first, int max) {
@@ -312,6 +348,81 @@ public class KeycloakUserService {
 
     private boolean hasPatientRole(List<RoleRepresentation> roles) {
         return roles.stream().anyMatch(role -> PATIENT_ROLE.equals(role.getName()));
+    }
+
+    private synchronized long resolveBusinessPatientId(
+            RealmResource realm,
+            String keycloakId
+    ) {
+        var userResource = realm.users().get(keycloakId);
+        UserRepresentation user = userResource.toRepresentation();
+        long existingId = parsePositivePatientId(
+                user.firstAttribute(PATIENT_ID_ATTRIBUTE)
+        );
+        if (existingId > 0) {
+            return existingId;
+        }
+
+        for (int salt = 0; salt < 100; salt++) {
+            long candidate = stablePatientId(keycloakId, salt);
+            if (!patientIdUsedByAnotherUser(realm, keycloakId, candidate)) {
+                user.singleAttribute(PATIENT_ID_ATTRIBUTE, Long.toString(candidate));
+                userResource.update(user);
+                return candidate;
+            }
+        }
+
+        throw new IllegalStateException(
+                "Impossible d'allouer un identifiant métier au patient"
+        );
+    }
+
+    private boolean patientIdUsedByAnotherUser(
+            RealmResource realm,
+            String keycloakId,
+            long candidate
+    ) {
+        String expected = Long.toString(candidate);
+        return realm.users()
+                .searchByAttributes(
+                        0,
+                        10,
+                        null,
+                        false,
+                        PATIENT_ID_ATTRIBUTE + ":" + expected
+                )
+                .stream()
+                .anyMatch(user -> !keycloakId.equals(user.getId())
+                        && expected.equals(user.firstAttribute(PATIENT_ID_ATTRIBUTE)));
+    }
+
+    private long stablePatientId(String keycloakId, int salt) {
+        UUID source;
+        try {
+            source = UUID.fromString(keycloakId);
+        } catch (IllegalArgumentException exception) {
+            source = UUID.nameUUIDFromBytes(
+                    keycloakId.getBytes(StandardCharsets.UTF_8)
+            );
+        }
+
+        long mixed = source.getMostSignificantBits()
+                ^ Long.rotateLeft(source.getLeastSignificantBits(), 21)
+                ^ (0x9E3779B97F4A7C15L * salt);
+        long candidate = mixed & Long.MAX_VALUE;
+        return candidate == 0 ? salt + 1L : candidate;
+    }
+
+    private long parsePositivePatientId(String value) {
+        if (value == null || value.isBlank()) {
+            return -1L;
+        }
+        try {
+            long patientId = Long.parseLong(value);
+            return patientId > 0 ? patientId : -1L;
+        } catch (NumberFormatException exception) {
+            return -1L;
+        }
     }
 
     private ResponseStatusException patientNotFound(String keycloakId) {

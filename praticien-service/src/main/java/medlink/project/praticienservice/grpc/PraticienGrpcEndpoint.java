@@ -13,6 +13,8 @@ import medlink.grpc.praticien.v1.ExistsActivePraticienResponse;
 import medlink.grpc.praticien.v1.PraticienGrpcResponse;
 import medlink.grpc.praticien.v1.PraticienGrpcServiceGrpc;
 import medlink.project.praticienservice.dto.PraticienDto;
+import medlink.project.praticienservice.exception.BusinessException;
+import medlink.project.praticienservice.exception.ResourceNotFoundException;
 import medlink.project.praticienservice.service.PraticienService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.grpc.server.service.GrpcService;
@@ -69,6 +71,14 @@ public class PraticienGrpcEndpoint
                             .withDescription(
                                     "Conflit de données praticien"
                             )
+                            .asRuntimeException()
+            );
+
+        } catch (ResourceNotFoundException | BusinessException e) {
+
+            responseObserver.onError(
+                    Status.FAILED_PRECONDITION
+                            .withDescription(e.getMessage())
                             .asRuntimeException()
             );
 

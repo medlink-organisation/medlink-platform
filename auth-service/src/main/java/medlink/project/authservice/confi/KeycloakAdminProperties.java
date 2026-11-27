@@ -24,6 +24,9 @@ public class KeycloakAdminProperties {
     @NotBlank
     private String clientSecret;
 
+    @NotBlank
+    private String praticienTemporaryPassword;
+
     public String getTokenUri() {
         return serverUrl + "/realms/" + realm
                 + "/protocol/openid-connect/token";

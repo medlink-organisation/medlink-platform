@@ -1,6 +1,6 @@
 package medlink.project.medicalrecordservice.security;
 
-import medlink.project.medicalrecordservice.config.properties.JwtProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,8 +23,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
             new JwtGrantedAuthoritiesConverter();
     private final String resourceId;
 
-    public JwtAuthConverter(JwtProperties properties) {
-        this.resourceId = properties.resourceId();
+    public JwtAuthConverter(@Value("${spring.application.name}") String resourceId) {
+        this.resourceId = resourceId;
     }
 
     @Override
@@ -72,7 +72,10 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         return roles.stream()
                 .filter(String.class::isInstance)
                 .map(String.class::cast)
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .flatMap(role -> Stream.of(
+                        new SimpleGrantedAuthority(role),
+                        new SimpleGrantedAuthority("ROLE_" + role)
+                ))
                 .collect(Collectors.toUnmodifiableSet());
     }
 }

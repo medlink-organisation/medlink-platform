@@ -19,8 +19,7 @@ spring:
     stream:
       kafka:
         binder:
-          brokers:
-            -kafk:9092
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS}
 server:
   port: 8899
 
@@ -32,7 +31,8 @@ management:
 eureka:
   client:
     service-url:
-      defaultZone: ${DISOVVERY_SERVICE_URL}
+      defaultZone: ${DISCOVERY_SERVICE_URL}
     register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true

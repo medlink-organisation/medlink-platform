@@ -83,6 +83,19 @@ public class WorkflowValidator {
         return task;
     }
 
+    public Task requireActiveTaskForAssignee(
+            String processInstanceId,
+            String taskId,
+            String assignee
+    ) {
+        requireText(assignee, "assignee");
+        Task task = requireActiveTask(processInstanceId, taskId);
+        if (!assignee.equals(task.getAssignee())) {
+            throw new WorkflowTaskNotFoundException(taskId);
+        }
+        return task;
+    }
+
     public EventSubscription requireMessageSubscription(
             String processInstanceId,
             String messageName) {
@@ -105,8 +118,13 @@ public class WorkflowValidator {
         Map<String, Object> source = variables == null ? Map.of() : variables;
         Map<String, Object> result = new HashMap<>();
         switch (definitionKey) {
-            case CHOOSE_SLOT_TASK ->
-                    result.put("creneauId", positiveNumber(source, "creneauId"));
+            case CHOOSE_SLOT_TASK -> {
+                result.put("creneauId", positiveNumber(source, "creneauId"));
+                Object motif = source.get("motif");
+                if (motif instanceof String text && !text.isBlank()) {
+                    result.put("motif", text.substring(0, Math.min(text.length(), 500)));
+                }
+            }
             case PRESENCE_TASK ->
                     result.put("patientPresent", booleanValue(source, "patientPresent"));
             case COMPLETE_CONSULTATION_TASK ->

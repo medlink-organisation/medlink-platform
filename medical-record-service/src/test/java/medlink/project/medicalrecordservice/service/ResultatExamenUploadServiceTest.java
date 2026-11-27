@@ -39,6 +39,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ResultatExamenUploadServiceTest {
 
+    private static final UUID RENDEZ_VOUS_ID = UUID.randomUUID();
+
     @Mock
     private ResultatExamenRepository repository;
     @Mock
@@ -100,7 +102,9 @@ class ResultatExamenUploadServiceTest {
 
         assertThrows(
                 IllegalStateException.class,
-                () -> service.uploadResultat(10L, "Analyse", LocalDate.now(), null, file)
+                () -> service.uploadResultat(
+                        10L, RENDEZ_VOUS_ID, "Analyse", LocalDate.now(), null, file
+                )
         );
 
         verify(objectStorageService).delete("medical-documents/random.pdf");
@@ -117,7 +121,9 @@ class ResultatExamenUploadServiceTest {
 
         assertThrows(
                 ObjectStorageException.class,
-                () -> service.uploadResultat(10L, "Analyse", LocalDate.now(), null, file)
+                () -> service.uploadResultat(
+                        10L, RENDEZ_VOUS_ID, "Analyse", LocalDate.now(), null, file
+                )
         );
 
         verify(persistenceService, never()).persistUploadedResult(
@@ -142,17 +148,22 @@ class ResultatExamenUploadServiceTest {
 
         assertThrows(
                 OrphanedObjectCleanupException.class,
-                () -> service.uploadResultat(10L, "Analyse", LocalDate.now(), null, file)
+                () -> service.uploadResultat(
+                        10L, RENDEZ_VOUS_ID, "Analyse", LocalDate.now(), null, file
+                )
         );
     }
 
     @Test
     void rejectsIdorBeforeLoadingDossier() {
-        doThrow(new AccessDeniedException("forbidden")).when(accessService).checkCanWrite(10L);
+        doThrow(new AccessDeniedException("forbidden"))
+                .when(accessService).checkCanAttachResult(10L, RENDEZ_VOUS_ID);
 
         assertThrows(
                 AccessDeniedException.class,
-                () -> service.uploadResultat(10L, "Analyse", LocalDate.now(), null, file())
+                () -> service.uploadResultat(
+                        10L, RENDEZ_VOUS_ID, "Analyse", LocalDate.now(), null, file()
+                )
         );
 
         verify(validator, never()).validateDossierExists(10L);

@@ -1,6 +1,7 @@
 package medlink.project.praticienservice.service;
 
 import medlink.project.praticienservice.dto.PraticienDto;
+import medlink.project.praticienservice.dto.BookingPraticienDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,6 +23,7 @@ public interface PraticienService {
             Long specialiteId,
             Pageable pageable
     );
+    Page<BookingPraticienDto> getActiveForBooking(Long specialiteId, Pageable pageable);
     PraticienDto changeStatus(Long id, Boolean actif);
     void delete(Long id);
 }

@@ -11,6 +11,8 @@ service AuthGrpcService {
       returns (UserContactResponse);
   rpc GetPatientById(GetPatientByIdRequest)
       returns (PatientResponse);
+  rpc ResolveActivePatient(GetPatientByIdRequest)
+      returns (PatientResponse);
   rpc GetAllPatients(GetPatientsRequest)
       returns (PatientPageResponse);
   rpc GetPatientByEmail(GetPatientByEmailRequest)
@@ -63,6 +65,7 @@ message PatientResponse {
   string last_name = 5;
   bool enabled = 6;
   bool email_verified = 7;
+  int64 business_patient_id = 8;
 }
 
 message PatientPageResponse {

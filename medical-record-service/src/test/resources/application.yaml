@@ -1,6 +1,12 @@
 spring:
+  application:
+    name: medical-record-service
   cloud:
     config:
+      enabled: false
+    vault:
+      enabled: false
+    bus:
       enabled: false
   datasource:
     url: jdbc:h2:mem:medical-record-test;DB_CLOSE_DELAY=-1
@@ -21,9 +27,6 @@ spring:
 eureka:
   client:
     enabled: false
-security:
-  jwt:
-    resource-id: medical-record-service
 medical:
   files:
     max-pdf-size-bytes: 10485760

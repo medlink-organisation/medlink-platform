@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: notification-service
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE}
+
+  config:
+    import:
+      - "optional:configserver:${CONFIG_SERVICE_URL}"
+      - "vault:///secret/data/notification-service"
+
+  cloud:
+    function:
+      definition: notificationEvents
+    stream:
+      bindings:
+        notificationEvents-in-0:
+          destination: ${NOTIFICATION_TOPIC}
+          group: notification-service
+          content-type: application/json
+          consumer:
+            max-attempts: 3
+      kafka:
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS}
+        bindings:
+          notificationEvents-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: ${NOTIFICATION_DLQ_TOPIC:notification.commands.v1.dlq}
+    vault:
+      uri: ${VAULT_URI}
+      authentication: APPROLE
+      app-role:
+        role-id: ${NOTIFICATION_VAULT_ROLE_ID}
+        secret-id: ${NOTIFICATION_VAULT_SECRET_ID}
+      kv:
+        enabled: true
+        backend: secret
+        backend-version: 2
+

@@ -2,29 +2,35 @@ package medlink.project.workflowservice.delegate;
 
 import lombok.RequiredArgsConstructor;
 import medlink.project.workflowservice.client.AuthGrpcClient;
+import medlink.project.workflowservice.dto.SendNotificationRequest;
+import medlink.project.workflowservice.service.NotificationService;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.delegate.JavaDelegate;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 @Component("notificationDelegate")
 @RequiredArgsConstructor
 public class NotificationDelegate implements JavaDelegate {
 
-    private final JavaMailSender mailSender;
+    private final NotificationService notificationService;
     private final AuthGrpcClient authGrpcClient;
 
     @Override
     public void execute(DelegateExecution execution) {
         String email = resolvePatientEmail(execution);
+        String patientUserId = requiredString(execution, "actorUserId");
         Object dateRdv = execution.getVariable("dateRdv");
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Confirmation de votre rendez-vous MedLink");
-        message.setText("Votre rendez-vous est confirmé pour le " + dateRdv + ".");
-        mailSender.send(message);
+        notificationService.sendNotification(new SendNotificationRequest(
+                patientUserId,
+                "PATIENT",
+                "RENDEZ_VOUS_CONFIRMATION",
+                "Confirmation de votre rendez-vous MedLink",
+                "Votre rendez-vous est confirmé pour le " + dateRdv + ".",
+                email,
+                true,
+                execution.getProcessInstanceId()
+        ));
     }
 
     private String resolvePatientEmail(DelegateExecution execution) {

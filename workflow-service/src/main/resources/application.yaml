@@ -1,5 +1,5 @@
 server:
-  port: 8065
+  port: 8069
 
 spring:
   application:
@@ -9,7 +9,7 @@ spring:
 
   config:
     import:
-      - "optional:configserver:${CONFIG_SERVICE_URL:http://localhost:8899}"
+      - "optional:configserver:${CONFIG_SERVICE_URL}"
       - "optional:vault:///secret/data/workflow-service"
 
   grpc:
@@ -24,13 +24,17 @@ spring:
         praticien-service:
           target: ${PRATICIEN_GRPC_TARGET:static://localhost:9092}
 
-  mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+
 
   cloud:
+    stream:
+      bindings:
+        notificationEvents-out-0:
+          destination: ${NOTIFICATION_TOPIC}
+          content-type: application/json
+      kafka:
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     vault:
       uri: ${VAULT_URI:http://localhost:8200}
       authentication: APPROLE
@@ -41,3 +45,4 @@ spring:
         enabled: true
         backend: secret
         backend-version: 2
+

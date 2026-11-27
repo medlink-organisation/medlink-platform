@@ -6,8 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
+import java.util.List;
 
 public interface ResultatExamenRepository extends JpaRepository<ResultatExamen, UUID> {
 
     Page<ResultatExamen> findByDossierMedicalId(Long dossierId, Pageable pageable);
+
+    List<ResultatExamen> findByDossierMedicalIdOrderByDateExamenDesc(Long dossierId);
 }

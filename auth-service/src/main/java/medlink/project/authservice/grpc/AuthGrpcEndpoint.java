@@ -74,6 +74,16 @@ public class AuthGrpcEndpoint extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBas
     }
 
     @Override
+    public void resolveActivePatient(
+            GetPatientByIdRequest request,
+            StreamObserver<PatientResponse> responseObserver
+    ) {
+        execute(responseObserver, () -> toGrpc(
+                keycloakUserService.resolveActivePatient(request.getKeycloakId())
+        ));
+    }
+
+    @Override
     public void getAllPatients(
             GetPatientsRequest request,
             StreamObserver<PatientPageResponse> responseObserver
@@ -233,6 +243,7 @@ public class AuthGrpcEndpoint extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBas
                 .setLastName(valueOrEmpty(patient.lastName()))
                 .setEnabled(patient.enabled())
                 .setEmailVerified(patient.emailVerified())
+                .setBusinessPatientId(patient.businessPatientId())
                 .build();
     }
 

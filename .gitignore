@@ -1,1 +1,10 @@
-.idea
+# Maven build
+target/
+*.class
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Logs
+*.log

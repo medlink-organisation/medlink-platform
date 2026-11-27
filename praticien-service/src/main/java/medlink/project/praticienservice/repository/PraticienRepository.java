@@ -25,6 +25,11 @@ public interface PraticienRepository
             Pageable pageable
     );
 
+    Page<Praticien> findBySpecialiteIdAndActifTrue(
+            Long specialiteId,
+            Pageable pageable
+    );
+
     boolean existsByEmailIgnoreCase(String email);
 
     boolean existsByEmailIgnoreCaseAndIdNot(

@@ -1,6 +1,5 @@
 package medlink.project.medicalrecordservice.security;
 
-import medlink.project.medicalrecordservice.config.properties.JwtProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -12,9 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JwtAuthConverterTest {
 
-    private final JwtAuthConverter converter = new JwtAuthConverter(
-            new JwtProperties("medical-record-service")
-    );
+    private final JwtAuthConverter converter = new JwtAuthConverter("medical-record-service");
 
     @Test
     void extractsWorkflowServiceClientRole() {

@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface CliniqueRepository extends JpaRepository<Clinique, Long> {
     Optional<Clinique> findByEmailIgnoreCase(String email);
 
+    Optional<Clinique> findByNomIgnoreCase(String nom);
+
     boolean existsByAdresse(String adresse);
     boolean existsByEmailIgnoreCase(String email);
 

@@ -30,6 +30,17 @@ public class MedicalRecordAccessConfiguration {
             }
 
             @Override
+            public void checkCanAttachResult(Long dossierId, UUID rendezVousId) {
+                deny();
+            }
+
+            @Override
+            public Long requireRecordIdForAppointment(UUID rendezVousId) {
+                deny();
+                return null;
+            }
+
+            @Override
             public void checkCanListAll() {
                 deny();
             }

@@ -2,6 +2,7 @@ package medlink.project.praticienservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import medlink.project.praticienservice.dto.SpecialiteDto;
+import medlink.project.praticienservice.dto.BookingSpecialiteDto;
 import medlink.project.praticienservice.service.SpecialiteService;
 import medlink.project.praticienservice.validtaion.OnCreate;
 import medlink.project.praticienservice.validtaion.OnUpdate;
@@ -68,6 +69,14 @@ public class SpecialiteController {
     ) {
 
         return ResponseEntity.ok(service.getAll(pageable));
+    }
+
+    @GetMapping("/booking/active")
+    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    public ResponseEntity<Page<BookingSpecialiteDto>> getActiveForBooking(
+            @PageableDefault(size = 100, sort = "nom") Pageable pageable
+    ) {
+        return ResponseEntity.ok(service.getActiveForBooking(pageable));
     }
 
     @PatchMapping("/change-status/{id}")

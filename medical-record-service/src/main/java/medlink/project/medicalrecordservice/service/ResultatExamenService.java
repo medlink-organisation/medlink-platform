@@ -12,6 +12,7 @@ public interface ResultatExamenService {
 
     ResultatExamenDto uploadResultat(
             Long dossierId,
+            UUID rendezVousId,
             String typeExamen,
             LocalDate dateExamen,
             String conclusion,

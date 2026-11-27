@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: auth-service
+  profiles:
+    active: test
+  config:
+    import: []
+  cloud:
+    config:
+      enabled: false
+    vault:
+      enabled: false
+    bus:
+      enabled: false
+  grpc:
+    server:
+      port: 0
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9999/test-jwks
+
+eureka:
+  client:
+    enabled: false
+
+keycloak:
+  server-url: http://localhost:8080
+  realm: test
+  client-id: test-client
+  client-secret: test-secret
+  praticien-temporary-password: Pratcien@123456
+
+medlink:
+  grpc:
+    praticien:
+      host: localhost
+      port: 9092

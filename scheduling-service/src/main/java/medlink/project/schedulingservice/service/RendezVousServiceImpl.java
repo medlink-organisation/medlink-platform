@@ -2,10 +2,14 @@ package medlink.project.schedulingservice.service;
 
 import lombok.RequiredArgsConstructor;
 import medlink.project.schedulingservice.dto.RendezVousDto;
+import medlink.project.schedulingservice.dto.RendezVousAgendaDto;
+import medlink.project.schedulingservice.dto.PraticienPatientDto;
+import medlink.project.schedulingservice.dto.PatientRendezVousDto;
 import medlink.project.schedulingservice.entities.Creneau;
 import medlink.project.schedulingservice.entities.RendezVous;
 import medlink.project.schedulingservice.entities.StatusRendezVous;
 import medlink.project.schedulingservice.entities.StatutCreneau;
+import medlink.project.schedulingservice.exception.BusinessException;
 import medlink.project.schedulingservice.mapper.RendezVousMapper;
 import medlink.project.schedulingservice.repositories.CreneauRepository;
 import medlink.project.schedulingservice.repositories.RendezVousRepository;
@@ -14,8 +18,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -63,8 +70,67 @@ public class RendezVousServiceImpl implements RendezVousService {
     }
 
     @Override
+    public Page<PatientRendezVousDto> getForPatient(Long patientId, Pageable pageable) {
+        return repository.findAllByPatientId(patientId, pageable)
+                .map(this::toPatientDto);
+    }
+
+    @Override
     public Page<RendezVousDto> getByCreneau(Long creneauId, Pageable pageable) {
         return repository.findAllByCreneauId(creneauId, pageable).map(mapper::toDto);
+    }
+
+    @Override
+    public List<RendezVousAgendaDto> getAgendaByPraticien(
+            Long praticienId,
+            LocalDateTime debut,
+            LocalDateTime fin
+    ) {
+        validateAgendaRange(debut, fin);
+        return repository.findAgendaByPraticien(praticienId, debut, fin)
+                .stream()
+                .map(this::toAgendaDto)
+                .toList();
+    }
+
+    @Override
+    public List<RendezVousAgendaDto> getDueByPraticien(
+            Long praticienId,
+            int minutesBefore,
+            int minutesAfter
+    ) {
+        if (minutesBefore < 0 || minutesBefore > 240
+                || minutesAfter < 0 || minutesAfter > 480) {
+            throw new BusinessException(
+                    "La fenêtre de rappel est invalide."
+            );
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return repository.findDueByPraticien(
+                        praticienId,
+                        List.of(StatusRendezVous.CONFIRME),
+                        now.minusMinutes(minutesAfter),
+                        now.plusMinutes(minutesBefore)
+                ).stream()
+                .map(this::toAgendaDto)
+                .toList();
+    }
+
+    @Override
+    public Page<PraticienPatientDto> getPatientsByPraticien(
+            Long praticienId,
+            Pageable pageable
+    ) {
+        return repository.findLatestCompletedByPraticien(
+                praticienId,
+                StatusRendezVous.TERMINE,
+                pageable
+        ).map(rendezVous -> new PraticienPatientDto(
+                rendezVous.getPatientId(),
+                rendezVous.getId(),
+                rendezVous.getCreneau().getDateDebut(),
+                rendezVous.getCreneau().getCliniqueId()
+        ));
     }
 
     @Override
@@ -133,7 +199,12 @@ public class RendezVousServiceImpl implements RendezVousService {
         rendezVous.setStatus(status);
         creneau.setStatut(StatutCreneau.RESERVE);
         creneauRepository.save(creneau);
-        return mapper.toDto(repository.save(rendezVous));
+        try {
+            return mapper.toDto(repository.saveAndFlush(rendezVous));
+        } catch (DataIntegrityViolationException exception) {
+            throw new BusinessException(
+                    "Le créneau vient d'être réservé par un autre patient.");
+        }
     }
 
     private RendezVousDto close(UUID id, StatusRendezVous target) {
@@ -148,6 +219,48 @@ public class RendezVousServiceImpl implements RendezVousService {
         if (validator.isActive(rendezVous)) {
             rendezVous.getCreneau().setStatut(StatutCreneau.DISPONIBLE);
             creneauRepository.save(rendezVous.getCreneau());
+        }
+    }
+
+    private RendezVousAgendaDto toAgendaDto(RendezVous rendezVous) {
+        Creneau creneau = rendezVous.getCreneau();
+        return new RendezVousAgendaDto(
+                rendezVous.getId(),
+                rendezVous.getPatientId(),
+                creneau.getPraticienId(),
+                creneau.getCliniqueId(),
+                creneau.getId(),
+                creneau.getDateDebut(),
+                creneau.getDateFin(),
+                rendezVous.getStatus(),
+                rendezVous.getType()
+        );
+    }
+
+    private PatientRendezVousDto toPatientDto(RendezVous rendezVous) {
+        Creneau creneau = rendezVous.getCreneau();
+        return new PatientRendezVousDto(
+                rendezVous.getId(),
+                creneau.getId(),
+                creneau.getPraticienId(),
+                creneau.getCliniqueId(),
+                creneau.getDateDebut(),
+                creneau.getDateFin(),
+                rendezVous.getStatus(),
+                rendezVous.getType()
+        );
+    }
+
+    private void validateAgendaRange(LocalDateTime debut, LocalDateTime fin) {
+        if (debut == null || fin == null || !fin.isAfter(debut)) {
+            throw new BusinessException(
+                    "La période de l'agenda est invalide."
+            );
+        }
+        if (debut.plusYears(1).isBefore(fin)) {
+            throw new BusinessException(
+                    "La période de l'agenda ne peut pas dépasser un an."
+            );
         }
     }
 }

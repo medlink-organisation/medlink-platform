@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: notification-service-test
+  config:
+    import: []
+  datasource:
+    url: jdbc:h2:mem:notification;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  cloud:
+    function:
+      definition: notificationEvents
+    config:
+      enabled: false
+    vault:
+      enabled: false
+    discovery:
+      enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:19999/jwks
+  mail:
+    host: localhost
+    port: 1025
+
+eureka:
+  client:
+    enabled: false
+
+management:
+  health:
+    mail:
+      enabled: false
+
+medlink:
+  notification:
+    mail:
+      from: no-reply@medlink.test
+    security:
+      trusted-producer-client-id: workflow-service

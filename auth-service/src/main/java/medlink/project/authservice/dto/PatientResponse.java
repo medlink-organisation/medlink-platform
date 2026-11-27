@@ -9,7 +9,8 @@ public record PatientResponse(
         String firstName,
         String lastName,
         boolean enabled,
-        boolean emailVerified
+        boolean emailVerified,
+        long businessPatientId
 ) {
 
     public static PatientResponse from(UserRepresentation user) {
@@ -20,7 +21,22 @@ public record PatientResponse(
                 user.getFirstName(),
                 user.getLastName(),
                 Boolean.TRUE.equals(user.isEnabled()),
-                Boolean.TRUE.equals(user.isEmailVerified())
+                Boolean.TRUE.equals(user.isEmailVerified()),
+                0L
+        );
+    }
+
+    public static PatientResponse from(UserRepresentation user, long businessPatientId) {
+        PatientResponse patient = from(user);
+        return new PatientResponse(
+                patient.id(),
+                patient.username(),
+                patient.email(),
+                patient.firstName(),
+                patient.lastName(),
+                patient.enabled(),
+                patient.emailVerified(),
+                businessPatientId
         );
     }
 }

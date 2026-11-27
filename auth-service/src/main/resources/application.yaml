@@ -23,3 +23,4 @@ spring:
         enabled: true
         backend: secret
         backend-version: 2
+

@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    config:
+      enabled: false
+    vault:
+      enabled: false
+    discovery:
+      enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9999/test-jwks
+app:
+  security:
+    cors:
+      allowed-origins: http://localhost
+eureka:
+  client:
+    enabled: false

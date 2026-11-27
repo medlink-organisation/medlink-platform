@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import medlink.project.workflowservice.dto.CompleteWorkflowTaskRequest;
 import medlink.project.workflowservice.dto.StartWorkflowRequest;
 import medlink.project.workflowservice.dto.WorkflowEventRequest;
+import medlink.project.workflowservice.client.PraticienGrpcClient;
 import medlink.project.workflowservice.service.WorkflowService;
 import medlink.project.workflowservice.service.WorkflowService.WorkflowEvent;
 import medlink.project.workflowservice.service.WorkflowService.WorkflowInstance;
 import medlink.project.workflowservice.service.WorkflowService.WorkflowStatus;
 import medlink.project.workflowservice.service.WorkflowService.WorkflowTask;
+import medlink.project.workflowservice.service.WorkflowService.PraticienWorkflowTask;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,9 +32,10 @@ import java.util.List;
 public class WorkflowController {
 
     private final WorkflowService workflowService;
+    private final PraticienGrpcClient praticienGrpcClient;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<WorkflowInstance> start(
             @Valid @RequestBody StartWorkflowRequest request,
             @AuthenticationPrincipal Jwt jwt) {
@@ -48,19 +51,21 @@ public class WorkflowController {
     }
 
     @GetMapping("/{processInstanceId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<WorkflowStatus> getStatus(
             @PathVariable String processInstanceId) {
         return ResponseEntity.ok(workflowService.getStatus(processInstanceId));
     }
 
     @GetMapping("/{processInstanceId}/tasks")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<WorkflowTask>> getTasks(
             @PathVariable String processInstanceId) {
         return ResponseEntity.ok(workflowService.getTasks(processInstanceId));
     }
 
     @PostMapping("/{processInstanceId}/tasks/{taskId}/complete")
-    @PreAuthorize("hasAnyRole('PATIENT', 'PRATICIEN', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<WorkflowStatus> completeTask(
             @PathVariable String processInstanceId,
             @PathVariable String taskId,
@@ -73,8 +78,36 @@ public class WorkflowController {
         ));
     }
 
+    @GetMapping("/tasks/me")
+    @PreAuthorize("hasRole('PRATICIEN')")
+    public ResponseEntity<List<PraticienWorkflowTask>> getMyTasks(
+            @AuthenticationPrincipal Jwt jwt) {
+        long praticienId = praticienGrpcClient
+                .getByKeycloakId(jwt.getSubject())
+                .getId();
+        return ResponseEntity.ok(workflowService.getTasksForPraticien(praticienId));
+    }
+
+    @PostMapping("/{processInstanceId}/tasks/{taskId}/complete-mine")
+    @PreAuthorize("hasRole('PRATICIEN')")
+    public ResponseEntity<WorkflowStatus> completeMyTask(
+            @PathVariable String processInstanceId,
+            @PathVariable String taskId,
+            @Valid @RequestBody CompleteWorkflowTaskRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        long praticienId = praticienGrpcClient
+                .getByKeycloakId(jwt.getSubject())
+                .getId();
+        return ResponseEntity.ok(workflowService.completeTaskForPraticien(
+                processInstanceId,
+                taskId,
+                request.variables(),
+                praticienId
+        ));
+    }
+
     @PostMapping("/{processInstanceId}/cancel")
-    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<WorkflowEvent> cancel(
             @PathVariable String processInstanceId,
             @Valid @RequestBody WorkflowEventRequest request) {
@@ -88,7 +121,7 @@ public class WorkflowController {
     }
 
     @PostMapping("/{processInstanceId}/reschedule")
-    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<WorkflowEvent> reschedule(
             @PathVariable String processInstanceId,
             @Valid @RequestBody WorkflowEventRequest request) {

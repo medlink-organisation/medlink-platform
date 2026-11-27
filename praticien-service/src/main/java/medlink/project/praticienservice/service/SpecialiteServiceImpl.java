@@ -2,6 +2,7 @@ package medlink.project.praticienservice.service;
 
 import lombok.RequiredArgsConstructor;
 import medlink.project.praticienservice.dto.SpecialiteDto;
+import medlink.project.praticienservice.dto.BookingSpecialiteDto;
 import medlink.project.praticienservice.entity.Specialite;
 import medlink.project.praticienservice.exception.BusinessException;
 import medlink.project.praticienservice.exception.ResourceNotFoundException;
@@ -81,6 +82,14 @@ public class SpecialiteServiceImpl implements SpecialiteService {
 
         return repository.findAll(pageable)
                 .map(mapper::toDto);
+    }
+
+    @Override
+    public Page<BookingSpecialiteDto> getActiveForBooking(Pageable pageable) {
+        return repository.findByActifTrue(pageable)
+                .map(specialite -> new BookingSpecialiteDto(
+                        specialite.getId(), specialite.getCode(), specialite.getNom(),
+                        specialite.getDescription()));
     }
 
     @Override

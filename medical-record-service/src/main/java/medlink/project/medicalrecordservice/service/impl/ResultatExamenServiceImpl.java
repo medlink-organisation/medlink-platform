@@ -46,13 +46,14 @@ public class ResultatExamenServiceImpl implements ResultatExamenService {
     @Override
     public ResultatExamenDto uploadResultat(
             Long dossierId,
+            UUID rendezVousId,
             String typeExamen,
             LocalDate dateExamen,
             String conclusion,
             MultipartFile file
     ) {
         authenticatedUserService.requireAuthenticatedJwt();
-        accessService.checkCanWrite(dossierId);
+        accessService.checkCanAttachResult(dossierId, rendezVousId);
         DossierMedical dossier = validator.validateDossierExists(dossierId);
         validator.validateUploadMetadata(typeExamen, dateExamen);
         byte[] pdfBytes = fileSecurityValidator.validateAndReadPdf(file);

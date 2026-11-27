@@ -22,18 +22,7 @@ public class CreneauValidator {
 
     public void validateCreate(CreneauDto dto) {
         validateDates(dto.getDateDebut(), dto.getDateFin());
-
-        boolean exists = creneauRepository
-                .existsByPraticienIdAndCliniqueIdAndDateDebutAndDateFin(
-                        dto.getPraticienId(),
-                        dto.getCliniqueId(),
-                        dto.getDateDebut(),
-                        dto.getDateFin()
-                );
-
-        if (exists) {
-            throw new RessourceAlreadyExistException("Ce créneau existe déjà.");
-        }
+        validateNoOverlap(dto.getPraticienId(), dto.getDateDebut(), dto.getDateFin(), null);
     }
 
     public Creneau validateUpdate(Long id, CreneauDto dto) {
@@ -44,9 +33,6 @@ public class CreneauValidator {
             throw new BusinessException("Le praticien d'un créneau ne peut pas être modifié.");
         }
 
-        Long cliniqueId = dto.getCliniqueId() == null
-                ? creneau.getCliniqueId()
-                : dto.getCliniqueId();
         LocalDateTime dateDebut = dto.getDateDebut() == null
                 ? creneau.getDateDebut()
                 : dto.getDateDebut();
@@ -56,18 +42,7 @@ public class CreneauValidator {
 
         validateDates(dateDebut, dateFin);
 
-        boolean duplicate = creneauRepository
-                .existsByPraticienIdAndCliniqueIdAndDateDebutAndDateFinAndIdNot(
-                        creneau.getPraticienId(),
-                        cliniqueId,
-                        dateDebut,
-                        dateFin,
-                        id
-                );
-
-        if (duplicate) {
-            throw new RessourceAlreadyExistException("Un autre créneau identique existe déjà.");
-        }
+        validateNoOverlap(creneau.getPraticienId(), dateDebut, dateFin, id);
 
         return creneau;
     }
@@ -111,6 +86,27 @@ public class CreneauValidator {
         if (debut == null || fin == null || !fin.isAfter(debut)) {
             throw new BusinessException(
                     "La date de fin doit être postérieure à la date de début."
+            );
+        }
+    }
+
+    public boolean overlaps(
+            Long praticienId,
+            LocalDateTime debut,
+            LocalDateTime fin
+    ) {
+        return creneauRepository.existsOverlapping(praticienId, debut, fin, null);
+    }
+
+    private void validateNoOverlap(
+            Long praticienId,
+            LocalDateTime debut,
+            LocalDateTime fin,
+            Long excludedId
+    ) {
+        if (creneauRepository.existsOverlapping(praticienId, debut, fin, excludedId)) {
+            throw new RessourceAlreadyExistException(
+                    "Le praticien possède déjà un créneau qui chevauche cette période."
             );
         }
     }

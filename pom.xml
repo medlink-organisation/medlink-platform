@@ -22,6 +22,7 @@
 
     <modules>
         <module>grpc-contracts</module>
+        <module>audit-core</module>
         <module>auth-service</module>
         <module>praticien-service</module>
         <module>directory-service</module>
@@ -29,6 +30,7 @@
         <module>discovery-service</module>
         <module>config-service</module>
         <module>workflow-service</module>
+        <module>notification-service</module>
         <module>scheduling-service</module>
         <module>medical-record-service</module>
     </modules>

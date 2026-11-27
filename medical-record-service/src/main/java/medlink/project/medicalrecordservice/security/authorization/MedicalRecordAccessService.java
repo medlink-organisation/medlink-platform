@@ -10,6 +10,10 @@ public interface MedicalRecordAccessService {
 
     void checkCanWrite(Long dossierId);
 
+    void checkCanAttachResult(Long dossierId, UUID rendezVousId);
+
+    Long requireRecordIdForAppointment(UUID rendezVousId);
+
     void checkCanListAll();
 
     void checkCanListByPractitioner(UUID practitionerId);

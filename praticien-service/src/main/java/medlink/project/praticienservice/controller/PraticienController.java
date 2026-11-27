@@ -3,6 +3,7 @@ package medlink.project.praticienservice.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import medlink.project.praticienservice.dto.PraticienDto;
+import medlink.project.praticienservice.dto.BookingPraticienDto;
 import medlink.project.praticienservice.service.PraticienService;
 import medlink.project.praticienservice.validtaion.OnCreate;
 import medlink.project.praticienservice.validtaion.OnUpdate;
@@ -34,7 +35,7 @@ public class PraticienController {
                 .body(service.create(dto));
     }
 
-    @PreAuthorize("hasRole(['PRATICIEN'+'ADMIN'])")
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/update/{id}")
     public ResponseEntity<PraticienDto> update(
             @PathVariable Long id,
@@ -97,6 +98,15 @@ public class PraticienController {
         return ResponseEntity.ok(
                 service.getBySpecialite(specialiteId, pageable)
         );
+    }
+
+    @GetMapping("/booking/active/by-specialite/{specialiteId}")
+    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
+    public ResponseEntity<Page<BookingPraticienDto>> getActiveForBooking(
+            @PathVariable Long specialiteId,
+            @PageableDefault(size = 100, sort = "nom") Pageable pageable
+    ) {
+        return ResponseEntity.ok(service.getActiveForBooking(specialiteId, pageable));
     }
     @PreAuthorize("hasRole('ADMIN')")
 

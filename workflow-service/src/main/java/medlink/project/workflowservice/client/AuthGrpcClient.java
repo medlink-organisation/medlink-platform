@@ -3,6 +3,8 @@ package medlink.project.workflowservice.client;
 import lombok.RequiredArgsConstructor;
 import medlink.grpc.auth.v1.AuthGrpcServiceGrpc;
 import medlink.grpc.auth.v1.GetUserContactRequest;
+import medlink.grpc.auth.v1.GetPatientByIdRequest;
+import medlink.grpc.auth.v1.PatientResponse;
 import medlink.grpc.auth.v1.UserContactResponse;
 import org.springframework.stereotype.Service;
 
@@ -25,5 +27,16 @@ public class AuthGrpcClient {
 
         return stub.withDeadlineAfter(3, TimeUnit.SECONDS)
                 .getUserContact(request);
+    }
+
+    public PatientResponse resolveActivePatient(String keycloakId) {
+        if (keycloakId == null || keycloakId.isBlank()) {
+            throw new IllegalArgumentException("keycloakId obligatoire");
+        }
+
+        return stub.withDeadlineAfter(3, TimeUnit.SECONDS)
+                .resolveActivePatient(GetPatientByIdRequest.newBuilder()
+                        .setKeycloakId(keycloakId)
+                        .build());
     }
 }

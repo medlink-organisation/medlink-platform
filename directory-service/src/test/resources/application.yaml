@@ -1,37 +1,32 @@
 spring:
   application:
-    name: directory-service-test
-
-  datasource:
-    url: jdbc:h2:mem:directory-test;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost/test-issuer
-
+    name: directory-service
   cloud:
     config:
       enabled: false
     vault:
       enabled: false
-    discovery:
-      enabled: false
     bus:
       enabled: false
-
+  datasource:
+    url: jdbc:h2:mem:directory-test;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9999/test-jwks
+          issuer-uri: http://localhost/test-issuer
 eureka:
   client:
     enabled: false
-
 medlink:
   directory:
     data-initialization-enabled: false

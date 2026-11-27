@@ -3,6 +3,7 @@ package medlink.project.schedulingservice.conifg;
 import io.grpc.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.grpc.client.GlobalClientInterceptor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
@@ -16,6 +17,7 @@ public class GrpcSecurityConfig {
             );
 
     @Bean
+    @GlobalClientInterceptor
     public ClientInterceptor grpcSecurityInterceptor() {
 
         return new ClientInterceptor() {

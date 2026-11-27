@@ -30,6 +30,8 @@ public class SecurityConfig {
                 .authorizeExchange(ex -> ex
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers("/actuator/**", "/actuator/info").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/admin/audit/**")
+                        .hasAuthority("AUDIT_READ")
 
                         .anyExchange().authenticated()
                 )

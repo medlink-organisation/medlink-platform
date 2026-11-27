@@ -83,7 +83,8 @@ class AuthGrpcEndpointTest {
                 "Amina",
                 "Ben Salah",
                 true,
-                true
+                true,
+                0L
         );
         when(keycloakUserService.getPatientById("kc-123")).thenReturn(patient);
         TestObserver<PatientResponse> observer = new TestObserver<>();
@@ -96,6 +97,32 @@ class AuthGrpcEndpointTest {
         assertNull(observer.error);
         assertEquals("kc-123", observer.response.getId());
         assertEquals("Amina", observer.response.getFirstName());
+        assertEquals(true, observer.completed);
+    }
+
+    @Test
+    void resolvesActivePatientWithBusinessId() {
+        var patient = new medlink.project.authservice.dto.PatientResponse(
+                "kc-123",
+                "patient@medlink.tn",
+                "patient@medlink.tn",
+                "Amina",
+                "Ben Salah",
+                true,
+                true,
+                42L
+        );
+        when(keycloakUserService.resolveActivePatient("kc-123")).thenReturn(patient);
+        TestObserver<PatientResponse> observer = new TestObserver<>();
+
+        endpoint.resolveActivePatient(
+                GetPatientByIdRequest.newBuilder().setKeycloakId("kc-123").build(),
+                observer
+        );
+
+        assertNull(observer.error);
+        assertEquals("kc-123", observer.response.getId());
+        assertEquals(42L, observer.response.getBusinessPatientId());
         assertEquals(true, observer.completed);
     }
 

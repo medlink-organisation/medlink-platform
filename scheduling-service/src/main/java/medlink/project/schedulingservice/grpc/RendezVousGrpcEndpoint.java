@@ -9,6 +9,9 @@ import medlink.project.schedulingservice.dto.CreneauDto;
 import medlink.project.schedulingservice.dto.RendezVousDto;
 import medlink.project.schedulingservice.entities.StatusRendezVous;
 import medlink.project.schedulingservice.entities.TypeRendezVous;
+import medlink.project.schedulingservice.exception.BusinessException;
+import medlink.project.schedulingservice.exception.RessourceAlreadyExistException;
+import medlink.project.schedulingservice.exception.RessourceNotExistException;
 import medlink.project.schedulingservice.service.CreneauService;
 import medlink.project.schedulingservice.service.RendezVousService;
 import org.springframework.grpc.server.service.GrpcService;
@@ -169,6 +172,15 @@ public class RendezVousGrpcEndpoint extends RendezVousGrpcServiceGrpc.RendezVous
             observer.onCompleted();
         } catch (io.grpc.StatusRuntimeException exception) {
             observer.onError(exception);
+        } catch (RessourceAlreadyExistException exception) {
+            observer.onError(Status.ALREADY_EXISTS.withDescription(exception.getMessage())
+                    .asRuntimeException());
+        } catch (RessourceNotExistException exception) {
+            observer.onError(Status.NOT_FOUND.withDescription(exception.getMessage())
+                    .asRuntimeException());
+        } catch (BusinessException exception) {
+            observer.onError(Status.FAILED_PRECONDITION.withDescription(exception.getMessage())
+                    .asRuntimeException());
         } catch (Exception exception) {
             observer.onError(Status.INTERNAL.withDescription(exception.getMessage())
                     .withCause(exception).asRuntimeException());

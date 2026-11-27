@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 import java.util.Optional;
+import java.util.List;
 
 public interface CompteRenduRepository extends JpaRepository<CompteRendu, UUID> {
 
@@ -17,4 +18,6 @@ public interface CompteRenduRepository extends JpaRepository<CompteRendu, UUID> 
     boolean existsByRendezVousId(UUID rendezVousId);
 
     Optional<CompteRendu> findByRendezVousId(UUID rendezVousId);
+
+    List<CompteRendu> findByDossierMedicalIdOrderByDateRedactionDesc(Long dossierId);
 }

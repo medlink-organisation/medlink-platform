@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import medlink.project.medicalrecordservice.dto.ResultatExamenDto;
 import medlink.project.medicalrecordservice.service.DownloadedDocument;
 import medlink.project.medicalrecordservice.service.ResultatExamenService;
+import medlink.project.medicalrecordservice.security.authorization.MedicalRecordAccessService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.CacheControl;
@@ -33,6 +34,30 @@ import java.util.UUID;
 public class ResultatExamenController {
 
     private final ResultatExamenService service;
+    private final MedicalRecordAccessService accessService;
+
+    @PostMapping(
+            path = "/appointments/{rendezVousId}/exam-results",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    @PreAuthorize("hasRole('PRATICIEN')")
+    public ResponseEntity<ResultatExamenDto> uploadForAppointment(
+            @PathVariable UUID rendezVousId,
+            @RequestParam String typeExamen,
+            @RequestParam LocalDate dateExamen,
+            @RequestParam(required = false) String conclusion,
+            @RequestParam("file") MultipartFile file
+    ) {
+        Long dossierId = accessService.requireRecordIdForAppointment(rendezVousId);
+        return ResponseEntity.ok(service.uploadResultat(
+                dossierId,
+                rendezVousId,
+                typeExamen,
+                dateExamen,
+                conclusion,
+                file
+        ));
+    }
 
     @PostMapping(
             path = "/{dossierId}/exam-results",
@@ -41,13 +66,21 @@ public class ResultatExamenController {
     @PreAuthorize("hasRole('PRATICIEN')")
     public ResponseEntity<ResultatExamenDto> upload(
             @PathVariable Long dossierId,
+            @RequestParam UUID rendezVousId,
             @RequestParam String typeExamen,
             @RequestParam LocalDate dateExamen,
             @RequestParam(required = false) String conclusion,
             @RequestParam("file") MultipartFile file
     ) {
         return ResponseEntity.ok(
-                service.uploadResultat(dossierId, typeExamen, dateExamen, conclusion, file)
+                service.uploadResultat(
+                        dossierId,
+                        rendezVousId,
+                        typeExamen,
+                        dateExamen,
+                        conclusion,
+                        file
+                )
         );
     }
 

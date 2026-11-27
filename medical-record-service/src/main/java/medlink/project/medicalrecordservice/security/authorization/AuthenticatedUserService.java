@@ -19,4 +19,30 @@ public class AuthenticatedUserService {
         }
         return jwtAuthentication;
     }
+
+    public long requirePatientId() {
+        Object claim = requireAuthenticatedJwt().getToken().getClaim("patient_id");
+        long patientId;
+        if (claim instanceof Number number) {
+            patientId = number.longValue();
+        } else if (claim instanceof String text) {
+            try {
+                patientId = Long.parseLong(text);
+            } catch (NumberFormatException exception) {
+                throw new AuthenticationCredentialsNotFoundException(
+                        "Le claim patient_id du JWT est invalide."
+                );
+            }
+        } else {
+            throw new AuthenticationCredentialsNotFoundException(
+                    "Le claim patient_id du JWT est obligatoire."
+            );
+        }
+        if (patientId <= 0) {
+            throw new AuthenticationCredentialsNotFoundException(
+                    "Le claim patient_id du JWT doit être positif."
+            );
+        }
+        return patientId;
+    }
 }

@@ -43,4 +43,13 @@ public class PraticienController {
                 .status(HttpStatus.CREATED)
                 .body(response);
     }
+
+    @DeleteMapping("/{keycloakId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteKeycloakAccount(
+            @PathVariable String keycloakId
+    ) {
+        registrationService.deleteKeycloakAccount(keycloakId);
+        return ResponseEntity.noContent().build();
+    }
 }

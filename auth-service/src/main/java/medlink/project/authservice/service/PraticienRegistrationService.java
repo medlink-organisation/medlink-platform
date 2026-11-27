@@ -54,7 +54,8 @@ public class PraticienRegistrationService {
             );
 
             if (code == Status.Code.INVALID_ARGUMENT
-                    || code == Status.Code.FAILED_PRECONDITION) {
+                    || code == Status.Code.FAILED_PRECONDITION
+                    || code == Status.Code.ALREADY_EXISTS) {
 
                 keycloakUserService.deleteUser(keycloakId);
 
@@ -100,5 +101,12 @@ public class PraticienRegistrationService {
                     e
             );
         }
+    }
+
+    public void deleteKeycloakAccount(String keycloakId) {
+        if (keycloakId == null || keycloakId.isBlank()) {
+            throw new IllegalArgumentException("keycloakId obligatoire");
+        }
+        keycloakUserService.deleteUser(keycloakId);
     }
 }

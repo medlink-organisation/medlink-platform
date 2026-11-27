@@ -35,6 +35,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/actuator/info").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

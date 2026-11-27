@@ -31,7 +31,7 @@ public class PatientController {
         return keycloakUserService.getPatientById(keycloakId);
     }
 
-    @GetMapping
+    @GetMapping("/getall")
     public PatientPageResponse getAll(
             @RequestParam(defaultValue = "0") int first,
             @RequestParam(defaultValue = "20") int max

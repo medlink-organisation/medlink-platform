@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -48,19 +49,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                 idempotencyKey
         );
 
-        ProcessInstance active = runtimeService.createProcessInstanceQuery()
-                .processInstanceBusinessKey(idempotencyKey)
-                .singleResult();
-        if (active != null) {
-            return new WorkflowInstance(active.getId(), active.getBusinessKey());
-        }
-
-        HistoricProcessInstance completed = historyService
-                .createHistoricProcessInstanceQuery()
-                .processInstanceBusinessKey(idempotencyKey)
-                .singleResult();
-        if (completed != null) {
-            return new WorkflowInstance(completed.getId(), completed.getBusinessKey());
+        Optional<WorkflowInstance> existing = findByBusinessKey(idempotencyKey);
+        if (existing.isPresent()) {
+            return existing.get();
         }
 
         Map<String, Object> variables = new HashMap<>();
@@ -76,6 +67,24 @@ public class WorkflowServiceImpl implements WorkflowService {
                 variables
         );
         return new WorkflowInstance(process.getId(), process.getBusinessKey());
+    }
+
+    @Override
+    public Optional<WorkflowInstance> findByBusinessKey(String businessKey) {
+        validator.requireText(businessKey, "businessKey");
+        ProcessInstance active = runtimeService.createProcessInstanceQuery()
+                .processInstanceBusinessKey(businessKey)
+                .singleResult();
+        if (active != null) {
+            return Optional.of(new WorkflowInstance(active.getId(), active.getBusinessKey()));
+        }
+        HistoricProcessInstance completed = historyService
+                .createHistoricProcessInstanceQuery()
+                .processInstanceBusinessKey(businessKey)
+                .singleResult();
+        return completed == null
+                ? Optional.empty()
+                : Optional.of(new WorkflowInstance(completed.getId(), completed.getBusinessKey()));
     }
 
     @Override
@@ -123,6 +132,29 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
+    public List<PraticienWorkflowTask> getTasksForPraticien(long praticienId) {
+        if (praticienId <= 0) {
+            throw new IllegalArgumentException("praticienId doit être positif");
+        }
+        return taskService.createTaskQuery()
+                .taskAssignee(Long.toString(praticienId))
+                .active()
+                .orderByTaskCreateTime()
+                .asc()
+                .list()
+                .stream()
+                .map(task -> new PraticienWorkflowTask(
+                        task.getId(),
+                        task.getProcessInstanceId(),
+                        stringVariable(task.getId(), "rdvId"),
+                        task.getTaskDefinitionKey(),
+                        task.getName(),
+                        task.getCreateTime().toInstant()
+                ))
+                .toList();
+    }
+
+    @Override
     @Transactional
     public WorkflowStatus completeTask(
             String processInstanceId,
@@ -130,6 +162,30 @@ public class WorkflowServiceImpl implements WorkflowService {
             Map<String, Object> variables) {
 
         Task task = validator.requireActiveTask(processInstanceId, taskId);
+        Map<String, Object> safeVariables = validator.validateTaskVariables(
+                task.getTaskDefinitionKey(),
+                variables
+        );
+        taskService.complete(taskId, safeVariables);
+        return getStatus(processInstanceId);
+    }
+
+    @Override
+    @Transactional
+    public WorkflowStatus completeTaskForPraticien(
+            String processInstanceId,
+            String taskId,
+            Map<String, Object> variables,
+            long praticienId
+    ) {
+        if (praticienId <= 0) {
+            throw new IllegalArgumentException("praticienId doit être positif");
+        }
+        Task task = validator.requireActiveTaskForAssignee(
+                processInstanceId,
+                taskId,
+                Long.toString(praticienId)
+        );
         Map<String, Object> safeVariables = validator.validateTaskVariables(
                 task.getTaskDefinitionKey(),
                 variables
@@ -192,6 +248,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                 task.getAssignee(),
                 task.getCreateTime().toInstant()
         );
+    }
+
+    private String stringVariable(String taskId, String name) {
+        Object value = taskService.getVariable(taskId, name);
+        return value instanceof String text ? text : "";
     }
 
 }

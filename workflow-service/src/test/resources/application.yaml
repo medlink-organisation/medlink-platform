@@ -16,8 +16,10 @@ spring:
       enabled: false
     vault:
       enabled: false
-    bus:
-      enabled: false
+    stream:
+      bindings:
+        notificationEvents-out-0:
+          destination: notification.commands.v1
     discovery:
       enabled: false
   grpc:
@@ -46,3 +48,4 @@ eureka:
 
 flowable:
   async-executor-activate: false
+

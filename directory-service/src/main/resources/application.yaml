@@ -1,31 +1,28 @@
-
 spring:
   application:
     name: directory-service
 
+  flyway:
+    baseline-on-migrate: true
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE}
+
   config:
     import:
-      - "optional:configserver:${CONFIG_SERVICE_URL:}"
-      - "vault:///secret/data/directory-service"
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+      - "optional:configserver:${CONFIG_SERVICE_URL:http://localhost:8899}"
+      - "optional:vault:///secret/data/directory-service"
 
   cloud:
     vault:
-      uri: ${VAULT_URI}
+      uri: ${VAULT_URI:http://localhost:8200}
       authentication: APPROLE
 
       app-role:
-        role-id: ${GATEWAY_VAULT_ROLE_ID}
-        secret-id: ${GATEWAY_VAULT_SECRET_ID}
+        role-id: ${DIRECTORY_VAULT_ROLE_ID}
+        secret-id: ${DIRECTORY_VAULT_SECRET_ID}
 
       kv:
         enabled: true
         backend: secret
         backend-version: 2
-
-medlink:
-  directory:
-    data-initialization-enabled: ${DIRECTORY_DATA_INITIALIZATION_ENABLED:true}
-    demo-praticien-1-id: ${DIRECTORY_DEMO_PRATICIEN_1_ID:1}
-    demo-praticien-2-id: ${DIRECTORY_DEMO_PRATICIEN_2_ID:2}
