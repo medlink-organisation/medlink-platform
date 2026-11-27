@@ -57,6 +57,65 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+
+  sonarqube:
+    name: SonarQube analysis
+    needs:
+      - docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: "**/pom.xml"
+
+      - name: Analyze service
+        env:
+          SERVICE: ${{ inputs.service }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [[ -z "$SONAR_HOST_URL" || -z "$SONAR_TOKEN" ]]; then
+            echo "SONAR_HOST_URL and SONAR_TOKEN secrets must be configured."
+            exit 1
+          fi
+          chmod +x "$SERVICE/mvnw"
+          PROJECT_KEY="${GITHUB_REPOSITORY//\//_}-${SERVICE}"
+          "./$SERVICE/mvnw" -B -f pom.xml -pl "$SERVICE" -am \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.host.url="$SONAR_HOST_URL" \
+            -Dsonar.projectKey="$PROJECT_KEY"
+
+  trivy:
+    name: Scan image with Trivy
+    needs:
+      - docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Scan published image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ inputs.image_name }}:${{ needs.docker.outputs.version }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          
   docker:
     name: Publish Docker image
     needs:
@@ -149,64 +208,6 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Image: \`${IMAGE_NAME}:${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Commit image: \`${IMAGE_NAME}:sha-${SHORT_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
-
-  sonarqube:
-    name: SonarQube analysis
-    needs:
-      - docker
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-
-      - name: Set up Java 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: maven
-          cache-dependency-path: "**/pom.xml"
-
-      - name: Analyze service
-        env:
-          SERVICE: ${{ inputs.service }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          if [[ -z "$SONAR_HOST_URL" || -z "$SONAR_TOKEN" ]]; then
-            echo "SONAR_HOST_URL and SONAR_TOKEN secrets must be configured."
-            exit 1
-          fi
-          chmod +x "$SERVICE/mvnw"
-          PROJECT_KEY="${GITHUB_REPOSITORY//\//_}-${SERVICE}"
-          "./$SERVICE/mvnw" -B -f pom.xml -pl "$SERVICE" -am \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.host.url="$SONAR_HOST_URL" \
-            -Dsonar.projectKey="$PROJECT_KEY"
-
-  trivy:
-    name: Scan image with Trivy
-    needs:
-      - docker
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Scan published image
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ inputs.image_name }}:${{ needs.docker.outputs.version }}
-          format: table
-          exit-code: "1"
-          ignore-unfixed: true
-          vuln-type: os,library
-          severity: CRITICAL,HIGH
 
   update-gitops:
     name: Update ${{ inputs.service }} in GitOps
