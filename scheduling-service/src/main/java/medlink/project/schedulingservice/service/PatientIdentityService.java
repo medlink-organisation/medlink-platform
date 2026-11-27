@@ -2,6 +2,7 @@ package medlink.project.schedulingservice.service;
 
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import medlink.grpc.auth.v1.AuthGrpcServiceGrpc;
 import medlink.grpc.auth.v1.GetPatientByIdRequest;
 import medlink.project.schedulingservice.exception.BusinessException;
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PatientIdentityService {
 
     private final AuthGrpcServiceGrpc.AuthGrpcServiceBlockingStub stub;
@@ -21,7 +23,7 @@ public class PatientIdentityService {
         }
 
         try {
-            var patient = stub.withDeadlineAfter(3, TimeUnit.SECONDS)
+            var patient = stub.withDeadlineAfter(10, TimeUnit.SECONDS)
                     .resolveActivePatient(GetPatientByIdRequest.newBuilder()
                             .setKeycloakId(keycloakId)
                             .build());
@@ -36,7 +38,22 @@ public class PatientIdentityService {
             }
             return patient.getBusinessPatientId();
         } catch (StatusRuntimeException exception) {
-            throw new BusinessException("Impossible de résoudre le patient connecté.");
+            var status = exception.getStatus();
+            log.warn(
+                    "Échec de résolution du patient connecté via auth-service: {} - {}",
+                    status.getCode(),
+                    status.getDescription()
+            );
+            throw switch (status.getCode()) {
+                case UNAUTHENTICATED -> new BusinessException(
+                        "L'authentification interservice du patient a échoué.");
+                case NOT_FOUND -> new BusinessException(
+                        "Aucun compte patient actif ne correspond à cette session.");
+                case DEADLINE_EXCEEDED, UNAVAILABLE -> new BusinessException(
+                        "Le service d'identité patient est temporairement indisponible.");
+                default -> new BusinessException(
+                        "Impossible de résoudre le patient connecté.");
+            };
         }
     }
 }

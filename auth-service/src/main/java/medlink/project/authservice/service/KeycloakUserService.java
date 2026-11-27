@@ -13,6 +13,7 @@ import medlink.project.authservice.validation.PatientValidator;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -23,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.ws.rs.NotFoundException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -160,7 +162,7 @@ public class KeycloakUserService {
             var userResource = realm.users().get(normalizedId);
             UserRepresentation user = userResource.toRepresentation();
 
-            if (!hasPatientRole(userResource.roles().realmLevel().listEffective())) {
+            if (!isPatientAccount(user, userResource.roles().realmLevel().listEffective())) {
                 throw patientNotFound(normalizedId);
             }
 
@@ -172,45 +174,70 @@ public class KeycloakUserService {
 
     public PatientResponse resolveActivePatient(String keycloakId) {
         String normalizedId = patientValidator.requireKeycloakId(keycloakId);
-        PatientResponse patient = getPatientById(normalizedId);
+        try {
+            RealmResource realm = keycloak.realm(props.getRealm());
+            UserResource userResource = realm.users().get(normalizedId);
+            UserRepresentation user = userResource.toRepresentation();
 
-        RealmResource realm = keycloak.realm(props.getRealm());
-        var userResource = realm.users().get(normalizedId);
-        UserRepresentation user = userResource.toRepresentation();
+            if (!isPatientAccount(user, userResource.roles().realmLevel().listEffective())) {
+                throw patientNotFound(normalizedId);
+            }
+            if (!Boolean.TRUE.equals(user.isEnabled())) {
+                return PatientResponse.from(user, 0L);
+            }
 
-        if (!patient.enabled()) {
-            return PatientResponse.from(user, 0L);
+            return PatientResponse.from(
+                    user,
+                    resolveBusinessPatientId(
+                            realm,
+                            userResource,
+                            user,
+                            normalizedId
+                    )
+            );
+        } catch (NotFoundException exception) {
+            throw patientNotFound(normalizedId);
         }
-
-        return PatientResponse.from(
-                user,
-                resolveBusinessPatientId(realm, normalizedId)
-        );
     }
 
     public PatientPageResponse getAllPatients(int first, int max) {
         patientValidator.validatePagination(first, max);
 
-        try {
-            var patientRole = keycloak.realm(props.getRealm())
-                    .roles()
-                    .get(PATIENT_ROLE);
+        RealmResource realm = keycloak.realm(props.getRealm());
+        List<PatientResponse> patients = new ArrayList<>(max + 1);
+        int userOffset = 0;
+        int patientOffset = 0;
+        final int batchSize = 100;
 
-            List<UserRepresentation> page = patientRole.getUserMembers(first, max + 1);
-            boolean hasNext = page.size() > max;
-            List<PatientResponse> content = page.stream()
-                    .limit(max)
-                    .map(PatientResponse::from)
-                    .toList();
+        while (patients.size() <= max) {
+            List<UserRepresentation> users = realm.users().list(userOffset, batchSize);
+            if (users.isEmpty()) {
+                break;
+            }
 
-            return new PatientPageResponse(content, first, max, hasNext);
-        } catch (NotFoundException exception) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Le rôle " + PATIENT_ROLE + " n'existe pas dans Keycloak",
-                    exception
-            );
+            for (UserRepresentation user : users) {
+                if (!isPatientAccount(realm, user)) {
+                    continue;
+                }
+                if (patientOffset++ < first) {
+                    continue;
+                }
+
+                patients.add(PatientResponse.from(user));
+                if (patients.size() > max) {
+                    break;
+                }
+            }
+
+            userOffset += users.size();
+            if (users.size() < batchSize) {
+                break;
+            }
         }
+
+        boolean hasNext = patients.size() > max;
+        List<PatientResponse> content = patients.stream().limit(max).toList();
+        return new PatientPageResponse(content, first, max, hasNext);
     }
 
     public PatientPageResponse getAllPatients() {
@@ -334,10 +361,20 @@ public class KeycloakUserService {
     }
 
     private boolean hasPatientRole(String keycloakId) {
+        RealmResource realm = keycloak.realm(props.getRealm());
         try {
-            return hasPatientRole(keycloak.realm(props.getRealm())
+            UserRepresentation user = realm.users().get(keycloakId).toRepresentation();
+            return isPatientAccount(realm, user);
+        } catch (NotFoundException exception) {
+            return false;
+        }
+    }
+
+    private boolean isPatientAccount(RealmResource realm, UserRepresentation user) {
+        try {
+            return isPatientAccount(user, realm
                     .users()
-                    .get(keycloakId)
+                    .get(user.getId())
                     .roles()
                     .realmLevel()
                     .listEffective());
@@ -346,16 +383,35 @@ public class KeycloakUserService {
         }
     }
 
-    private boolean hasPatientRole(List<RoleRepresentation> roles) {
-        return roles.stream().anyMatch(role -> PATIENT_ROLE.equals(role.getName()));
+    private boolean isPatientAccount(
+            UserRepresentation user,
+            List<RoleRepresentation> roles
+    ) {
+        if (user.getServiceAccountClientId() != null
+                || (user.getUsername() != null
+                && user.getUsername().startsWith("service-account-"))) {
+            return false;
+        }
+
+        boolean patient = false;
+        for (RoleRepresentation role : roles) {
+            if (PATIENT_ROLE.equals(role.getName())) {
+                patient = true;
+            }
+            if (PRATICIEN_ROLE.equals(role.getName())
+                    || "ADMIN".equals(role.getName())) {
+                return false;
+            }
+        }
+        return patient;
     }
 
     private synchronized long resolveBusinessPatientId(
             RealmResource realm,
+            UserResource userResource,
+            UserRepresentation user,
             String keycloakId
     ) {
-        var userResource = realm.users().get(keycloakId);
-        UserRepresentation user = userResource.toRepresentation();
         long existingId = parsePositivePatientId(
                 user.firstAttribute(PATIENT_ID_ATTRIBUTE)
         );
