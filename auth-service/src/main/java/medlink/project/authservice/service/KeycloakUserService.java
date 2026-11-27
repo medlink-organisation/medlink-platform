@@ -25,8 +25,11 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.ws.rs.NotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -228,6 +231,28 @@ public class KeycloakUserService {
         return getAllPatients(0, 20);
     }
 
+    public List<PatientResponse> getPatientsByBusinessIds(
+            Collection<Long> businessPatientIds
+    ) {
+        if (businessPatientIds == null) {
+            throw new IllegalArgumentException("La liste des patients est obligatoire");
+        }
+
+        LinkedHashSet<Long> ids = new LinkedHashSet<>(businessPatientIds);
+        if (ids.stream().anyMatch(id -> id == null || id <= 0)) {
+            throw new IllegalArgumentException("Un identifiant patient est invalide");
+        }
+        if (ids.size() > 200) {
+            throw new IllegalArgumentException("Trop de patients demandés");
+        }
+
+        RealmResource realm = keycloak.realm(props.getRealm());
+        return ids.stream()
+                .map(id -> findPatientByBusinessId(realm, id))
+                .flatMap(Optional::stream)
+                .toList();
+    }
+
     public PatientResponse getPatientByEmail(String email) {
         String normalizedEmail = patientValidator.requireEmail(email);
 
@@ -365,6 +390,35 @@ public class KeycloakUserService {
         } catch (NotFoundException exception) {
             return false;
         }
+    }
+
+    private Optional<PatientResponse> findPatientByBusinessId(
+            RealmResource realm,
+            long businessPatientId
+    ) {
+        String expected = Long.toString(businessPatientId);
+        List<UserRepresentation> matches = realm.users()
+                .searchByAttributes(
+                        0,
+                        2,
+                        null,
+                        false,
+                        PATIENT_ID_ATTRIBUTE + ":" + expected
+                )
+                .stream()
+                .filter(user -> expected.equals(
+                        user.firstAttribute(PATIENT_ID_ATTRIBUTE)))
+                .filter(user -> isPatientAccount(realm, user))
+                .toList();
+
+        if (matches.size() > 1) {
+            throw new IllegalStateException(
+                    "Plusieurs patients utilisent le même identifiant métier"
+            );
+        }
+        return matches.stream()
+                .findFirst()
+                .map(user -> PatientResponse.from(user, businessPatientId));
     }
 
     private boolean isPatientAccount(

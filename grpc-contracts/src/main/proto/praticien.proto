@@ -15,6 +15,8 @@ service PraticienGrpcService {
       returns (PraticienGrpcResponse);
   rpc GetPraticienById(GetPraticienByIdRequest)
       returns (PraticienGrpcResponse);
+  rpc GetPraticiensByIds(GetPraticiensByIdsRequest)
+      returns (PraticiensByIdsResponse);
 
   rpc ExistsActivePraticien(ExistsActivePraticienRequest)
       returns (ExistsActivePraticienResponse);
@@ -35,6 +37,14 @@ message GetPraticienByKeycloakIdRequest {
 }
 message GetPraticienByIdRequest {
   int64 praticien_id = 1;
+}
+
+message GetPraticiensByIdsRequest {
+  repeated int64 praticien_ids = 1;
+}
+
+message PraticiensByIdsResponse {
+  repeated PraticienGrpcResponse praticiens = 1;
 }
 
 message ExistsActivePraticienRequest {

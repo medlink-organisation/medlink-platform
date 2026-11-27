@@ -2,6 +2,7 @@ package medlink.project.schedulingservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import medlink.project.schedulingservice.dto.RendezVousDto;
+import medlink.project.schedulingservice.dto.AdminRendezVousDto;
 import medlink.project.schedulingservice.dto.RendezVousAgendaDto;
 import medlink.project.schedulingservice.dto.PraticienPatientDto;
 import medlink.project.schedulingservice.dto.PatientRendezVousDto;
@@ -115,8 +116,8 @@ public class RendezVousController {
 
     @GetMapping("/getall")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<RendezVousDto>> getAll(
-            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
+    public ResponseEntity<Page<AdminRendezVousDto>> getAll(
+            @PageableDefault(size = 10, sort = "creneau.dateDebut", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable
     ) {
         return ResponseEntity.ok(service.getAll(pageable));
     }

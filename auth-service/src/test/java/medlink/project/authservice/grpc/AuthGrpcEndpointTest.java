@@ -5,7 +5,9 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import medlink.grpc.auth.v1.GetUserContactRequest;
 import medlink.grpc.auth.v1.GetPatientByIdRequest;
+import medlink.grpc.auth.v1.GetPatientsByBusinessIdsRequest;
 import medlink.grpc.auth.v1.PatientResponse;
+import medlink.grpc.auth.v1.PatientsByBusinessIdsResponse;
 import medlink.grpc.auth.v1.UserContactResponse;
 import medlink.project.authservice.service.KeycloakUserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import jakarta.ws.rs.NotFoundException;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -123,6 +127,38 @@ class AuthGrpcEndpointTest {
         assertNull(observer.error);
         assertEquals("kc-123", observer.response.getId());
         assertEquals(42L, observer.response.getBusinessPatientId());
+        assertEquals(true, observer.completed);
+    }
+
+    @Test
+    void returnsPatientsByBusinessIds() {
+        long patientId = 4_303_278_309_522_443_300L;
+        var patient = new medlink.project.authservice.dto.PatientResponse(
+                "kc-123",
+                "patient@medlink.tn",
+                "patient@medlink.tn",
+                "Ahmed",
+                "Ben Ali",
+                true,
+                true,
+                patientId
+        );
+        when(keycloakUserService.getPatientsByBusinessIds(List.of(patientId)))
+                .thenReturn(List.of(patient));
+        TestObserver<PatientsByBusinessIdsResponse> observer = new TestObserver<>();
+
+        endpoint.getPatientsByBusinessIds(
+                GetPatientsByBusinessIdsRequest.newBuilder()
+                        .addBusinessPatientIds(patientId)
+                        .build(),
+                observer
+        );
+
+        assertNull(observer.error);
+        assertEquals(1, observer.response.getPatientsCount());
+        assertEquals(patientId,
+                observer.response.getPatients(0).getBusinessPatientId());
+        assertEquals("Ahmed", observer.response.getPatients(0).getFirstName());
         assertEquals(true, observer.completed);
     }
 

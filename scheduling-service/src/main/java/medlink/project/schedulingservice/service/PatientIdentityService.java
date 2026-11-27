@@ -5,9 +5,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import medlink.grpc.auth.v1.AuthGrpcServiceGrpc;
 import medlink.grpc.auth.v1.GetPatientByIdRequest;
+import medlink.grpc.auth.v1.GetPatientsByBusinessIdsRequest;
 import medlink.project.schedulingservice.exception.BusinessException;
+import medlink.project.schedulingservice.exception.ExternalServiceException;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -16,6 +21,46 @@ import java.util.concurrent.TimeUnit;
 public class PatientIdentityService {
 
     private final AuthGrpcServiceGrpc.AuthGrpcServiceBlockingStub stub;
+
+    public record PatientIdentity(long id, String nom, String prenom) {
+    }
+
+    public Map<Long, PatientIdentity> getByBusinessIds(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Map.of();
+        }
+
+        try {
+            var response = stub.withDeadlineAfter(10, TimeUnit.SECONDS)
+                    .getPatientsByBusinessIds(
+                            GetPatientsByBusinessIdsRequest.newBuilder()
+                                    .addAllBusinessPatientIds(ids)
+                                    .build()
+                    );
+
+            Map<Long, PatientIdentity> patients = new LinkedHashMap<>();
+            response.getPatientsList().forEach(patient -> patients.put(
+                    patient.getBusinessPatientId(),
+                    new PatientIdentity(
+                            patient.getBusinessPatientId(),
+                            patient.getLastName(),
+                            patient.getFirstName()
+                    )
+            ));
+            return patients;
+        } catch (StatusRuntimeException exception) {
+            log.error(
+                    "Échec de la résolution groupée des patients via auth-service: {} - {}",
+                    exception.getStatus().getCode(),
+                    exception.getStatus().getDescription(),
+                    exception
+            );
+            throw new ExternalServiceException(
+                    "Le service d'identité patient est temporairement indisponible.",
+                    exception
+            );
+        }
+    }
 
     public long requireActivePatientId(String keycloakId) {
         if (keycloakId == null || keycloakId.isBlank()) {

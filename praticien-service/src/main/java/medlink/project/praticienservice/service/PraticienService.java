@@ -5,6 +5,9 @@ import medlink.project.praticienservice.dto.BookingPraticienDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
+import java.util.List;
+
 public interface PraticienService {
 
     PraticienDto create(PraticienDto dto);
@@ -12,6 +15,8 @@ public interface PraticienService {
     PraticienDto update(Long id, PraticienDto dto);
 
     PraticienDto getById(Long id);
+
+    List<PraticienDto> getByIds(Collection<Long> ids);
 
     PraticienDto getByKeycloakId(String keycloakId);
 

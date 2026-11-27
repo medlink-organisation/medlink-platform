@@ -8,10 +8,12 @@ import lombok.RequiredArgsConstructor;
 import medlink.grpc.praticien.v1.CreatePraticienGrpcRequest;
 import medlink.grpc.praticien.v1.GetPraticienByKeycloakIdRequest;
 import medlink.grpc.praticien.v1.GetPraticienByIdRequest;
+import medlink.grpc.praticien.v1.GetPraticiensByIdsRequest;
 import medlink.grpc.praticien.v1.ExistsActivePraticienRequest;
 import medlink.grpc.praticien.v1.ExistsActivePraticienResponse;
 import medlink.grpc.praticien.v1.PraticienGrpcResponse;
 import medlink.grpc.praticien.v1.PraticienGrpcServiceGrpc;
+import medlink.grpc.praticien.v1.PraticiensByIdsResponse;
 import medlink.project.praticienservice.dto.PraticienDto;
 import medlink.project.praticienservice.exception.BusinessException;
 import medlink.project.praticienservice.exception.ResourceNotFoundException;
@@ -149,6 +151,31 @@ public class PraticienGrpcEndpoint
         } catch (Exception exception) {
             responseObserver.onError(Status.NOT_FOUND
                     .withDescription("Praticien introuvable")
+                    .asRuntimeException());
+        }
+    }
+
+    @Override
+    public void getPraticiensByIds(
+            GetPraticiensByIdsRequest request,
+            StreamObserver<PraticiensByIdsResponse> responseObserver
+    ) {
+        try {
+            responseObserver.onNext(PraticiensByIdsResponse.newBuilder()
+                    .addAllPraticiens(praticienService
+                            .getByIds(request.getPraticienIdsList())
+                            .stream()
+                            .map(grpcMapper::toGrpc)
+                            .toList())
+                    .build());
+            responseObserver.onCompleted();
+        } catch (BusinessException exception) {
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription(exception.getMessage())
+                    .asRuntimeException());
+        } catch (Exception exception) {
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Erreur lors de la recherche des praticiens")
                     .asRuntimeException());
         }
     }

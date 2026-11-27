@@ -17,6 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -69,6 +73,25 @@ public class PraticienServiceImpl implements PraticienService {
         Praticien praticien = validator.validateExists(id);
 
         return mapper.toDto(praticien);
+    }
+
+    @Override
+    public List<PraticienDto> getByIds(Collection<Long> ids) {
+        if (ids == null) {
+            throw new BusinessException("La liste des praticiens est obligatoire");
+        }
+
+        LinkedHashSet<Long> uniqueIds = new LinkedHashSet<>(ids);
+        if (uniqueIds.stream().anyMatch(id -> id == null || id <= 0)) {
+            throw new BusinessException("Un identifiant praticien est invalide");
+        }
+        if (uniqueIds.size() > 200) {
+            throw new BusinessException("Trop de praticiens demandés");
+        }
+
+        return repository.findAllById(uniqueIds).stream()
+                .map(mapper::toDto)
+                .toList();
     }
 
     @Override

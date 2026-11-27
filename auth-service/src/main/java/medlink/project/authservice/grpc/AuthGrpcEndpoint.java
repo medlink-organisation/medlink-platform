@@ -10,10 +10,12 @@ import medlink.grpc.auth.v1.BooleanResponse;
 import medlink.grpc.auth.v1.GetPatientByEmailRequest;
 import medlink.grpc.auth.v1.GetPatientByIdRequest;
 import medlink.grpc.auth.v1.GetPatientsRequest;
+import medlink.grpc.auth.v1.GetPatientsByBusinessIdsRequest;
 import medlink.grpc.auth.v1.GetUserContactRequest;
 import medlink.grpc.auth.v1.PatientPageResponse;
 import medlink.grpc.auth.v1.PatientResponse;
 import medlink.grpc.auth.v1.PatientRolesResponse;
+import medlink.grpc.auth.v1.PatientsByBusinessIdsResponse;
 import medlink.grpc.auth.v1.UserContactResponse;
 import medlink.project.authservice.service.KeycloakUserService;
 import jakarta.ws.rs.NotFoundException;
@@ -99,6 +101,21 @@ public class AuthGrpcEndpoint extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBas
                     .setHasNext(page.hasNext())
                     .build();
         });
+    }
+
+    @Override
+    public void getPatientsByBusinessIds(
+            GetPatientsByBusinessIdsRequest request,
+            StreamObserver<PatientsByBusinessIdsResponse> responseObserver
+    ) {
+        execute(responseObserver, () -> PatientsByBusinessIdsResponse.newBuilder()
+                .addAllPatients(keycloakUserService
+                        .getPatientsByBusinessIds(
+                                request.getBusinessPatientIdsList())
+                        .stream()
+                        .map(this::toGrpc)
+                        .toList())
+                .build());
     }
 
     @Override

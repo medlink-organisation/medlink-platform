@@ -1,7 +1,9 @@
 package medlink.project.schedulingservice.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import medlink.project.schedulingservice.dto.RendezVousDto;
+import medlink.project.schedulingservice.dto.AdminRendezVousDto;
 import medlink.project.schedulingservice.dto.RendezVousAgendaDto;
 import medlink.project.schedulingservice.dto.PraticienPatientDto;
 import medlink.project.schedulingservice.dto.PatientRendezVousDto;
@@ -10,6 +12,7 @@ import medlink.project.schedulingservice.entities.RendezVous;
 import medlink.project.schedulingservice.entities.StatusRendezVous;
 import medlink.project.schedulingservice.entities.StatutCreneau;
 import medlink.project.schedulingservice.exception.BusinessException;
+import medlink.project.schedulingservice.exception.ExternalServiceException;
 import medlink.project.schedulingservice.mapper.RendezVousMapper;
 import medlink.project.schedulingservice.repositories.CreneauRepository;
 import medlink.project.schedulingservice.repositories.RendezVousRepository;
@@ -22,17 +25,23 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.UUID;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class RendezVousServiceImpl implements RendezVousService {
 
     private final RendezVousRepository repository;
     private final CreneauRepository creneauRepository;
     private final RendezVousMapper mapper;
     private final RendezVousValidator validator;
+    private final PatientIdentityService patientIdentityService;
+    private final PraticienIdentityService praticienIdentityService;
 
     @Override
     @Transactional
@@ -60,8 +69,29 @@ public class RendezVousServiceImpl implements RendezVousService {
     }
 
     @Override
-    public Page<RendezVousDto> getAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toDto);
+    public Page<AdminRendezVousDto> getAll(Pageable pageable) {
+        Page<RendezVous> rendezVousPage = repository.findAll(pageable);
+
+        Set<Long> patientIds = rendezVousPage.stream()
+                .map(RendezVous::getPatientId)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        Set<Long> praticienIds = rendezVousPage.stream()
+                .map(RendezVous::getCreneau)
+                .map(Creneau::getPraticienId)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+
+        Map<Long, PatientIdentityService.PatientIdentity> patients =
+                patientIdentityService.getByBusinessIds(patientIds);
+        Map<Long, PraticienIdentityService.PraticienIdentity> praticiens =
+                praticienIdentityService.getByIds(praticienIds);
+
+        ensureAllIdentitiesResolved(patientIds, praticienIds, patients, praticiens);
+
+        return rendezVousPage.map(rendezVous -> toAdminDto(
+                rendezVous,
+                patients.get(rendezVous.getPatientId()),
+                praticiens.get(rendezVous.getCreneau().getPraticienId())
+        ));
     }
 
     @Override
@@ -255,6 +285,54 @@ public class RendezVousServiceImpl implements RendezVousService {
                 rendezVous.getStatus(),
                 rendezVous.getType()
         );
+    }
+
+    private AdminRendezVousDto toAdminDto(
+            RendezVous rendezVous,
+            PatientIdentityService.PatientIdentity patient,
+            PraticienIdentityService.PraticienIdentity praticien
+    ) {
+        Creneau creneau = rendezVous.getCreneau();
+        return new AdminRendezVousDto(
+                rendezVous.getId(),
+                rendezVous.getPatientId().toString(),
+                patient.nom(),
+                patient.prenom(),
+                creneau.getPraticienId(),
+                praticien.nom(),
+                praticien.prenom(),
+                creneau.getId(),
+                creneau.getCliniqueId(),
+                creneau.getDateDebut(),
+                creneau.getDateFin(),
+                rendezVous.getType(),
+                rendezVous.getStatus()
+        );
+    }
+
+    private void ensureAllIdentitiesResolved(
+            Set<Long> patientIds,
+            Set<Long> praticienIds,
+            Map<Long, PatientIdentityService.PatientIdentity> patients,
+            Map<Long, PraticienIdentityService.PraticienIdentity> praticiens
+    ) {
+        Set<Long> missingPatients = new LinkedHashSet<>(patientIds);
+        missingPatients.removeAll(patients.keySet());
+        if (!missingPatients.isEmpty()) {
+            log.warn("Patients métier non résolus dans auth-service: {}", missingPatients);
+            throw new ExternalServiceException(
+                    "Certaines identités patient ne peuvent pas être récupérées."
+            );
+        }
+
+        Set<Long> missingPraticiens = new LinkedHashSet<>(praticienIds);
+        missingPraticiens.removeAll(praticiens.keySet());
+        if (!missingPraticiens.isEmpty()) {
+            log.warn("Praticiens non résolus dans praticien-service: {}", missingPraticiens);
+            throw new ExternalServiceException(
+                    "Certaines identités praticien ne peuvent pas être récupérées."
+            );
+        }
     }
 
     private void validateAgendaRange(LocalDateTime debut, LocalDateTime fin) {

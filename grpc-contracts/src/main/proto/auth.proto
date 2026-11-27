@@ -17,6 +17,8 @@ service AuthGrpcService {
       returns (PatientPageResponse);
   rpc GetPatientByEmail(GetPatientByEmailRequest)
       returns (PatientResponse);
+  rpc GetPatientsByBusinessIds(GetPatientsByBusinessIdsRequest)
+      returns (PatientsByBusinessIdsResponse);
   rpc ExistsPatientById(GetPatientByIdRequest)
       returns (BooleanResponse);
   rpc ExistsPatientByEmail(GetPatientByEmailRequest)
@@ -55,6 +57,14 @@ message GetPatientByEmailRequest {
 message GetPatientsRequest {
   int32 first = 1;
   int32 max = 2;
+}
+
+message GetPatientsByBusinessIdsRequest {
+  repeated int64 business_patient_ids = 1;
+}
+
+message PatientsByBusinessIdsResponse {
+  repeated PatientResponse patients = 1;
 }
 
 message PatientResponse {

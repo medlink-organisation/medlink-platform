@@ -1,6 +1,7 @@
 package medlink.project.schedulingservice.service;
 
 import medlink.project.schedulingservice.dto.RendezVousDto;
+import medlink.project.schedulingservice.dto.AdminRendezVousDto;
 import medlink.project.schedulingservice.dto.RendezVousAgendaDto;
 import medlink.project.schedulingservice.dto.PraticienPatientDto;
 import medlink.project.schedulingservice.dto.PatientRendezVousDto;
@@ -19,7 +20,7 @@ public interface RendezVousService {
 
     RendezVousDto getById(UUID id);
 
-    Page<RendezVousDto> getAll(Pageable pageable);
+    Page<AdminRendezVousDto> getAll(Pageable pageable);
 
     Page<RendezVousDto> getByPatient(Long patientId, Pageable pageable);
 

@@ -16,6 +16,10 @@ import java.util.UUID;
 
 public interface RendezVousRepository extends JpaRepository<RendezVous , UUID> {
 
+    @Override
+    @EntityGraph(attributePaths = "creneau")
+    Page<RendezVous> findAll(Pageable pageable);
+
     @EntityGraph(attributePaths = "creneau")
     Page<RendezVous> findAllByPatientId(Long patientId, Pageable pageable);
 
