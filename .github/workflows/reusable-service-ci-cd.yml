@@ -213,8 +213,6 @@ jobs:
     name: Update ${{ inputs.service }} in GitOps
     needs:
       - docker
-      - sonarqube
-      - trivy
     runs-on: ubuntu-latest
 
     steps:
