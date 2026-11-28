@@ -12,6 +12,9 @@ import medlink.project.medicalrecordservice.validation.OnCreate;
 import medlink.project.medicalrecordservice.validation.OnUpdate;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 @Getter
 @Setter
@@ -32,6 +35,7 @@ public class DossierMedicalDto {
             groups = {OnCreate.class, OnUpdate.class},
             message = "L'identifiant du patient doit être positif"
     )
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long patientId;
 
     @Null(
@@ -45,4 +49,18 @@ public class DossierMedicalDto {
             message = "La date de dernière modification est gérée par le système"
     )
     private LocalDateTime derniereModification;
+
+    private String patientNom;
+    private String patientPrenom;
+    private String patientEmail;
+    private String patientTelephone;
+    private String patientDateNaissance;
+    private String patientSexe;
+
+    @Builder.Default
+    private List<CompteRenduDto> comptesRendus = List.of();
+    @Builder.Default
+    private List<ResultatExamenDto> resultatsExamens = List.of();
+    @Builder.Default
+    private List<DocumentMedicalDto> documentsMedicaux = List.of();
 }

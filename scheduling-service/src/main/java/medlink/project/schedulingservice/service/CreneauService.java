@@ -28,6 +28,13 @@ public interface CreneauService {
             LocalDateTime fin
     );
 
+    List<CreneauDto> getAvailableForBooking(
+            Long praticienId,
+            Long cliniqueId,
+            LocalDateTime debut,
+            LocalDateTime fin
+    );
+
     GenerationCreneauxResponse generate(GenerationCreneauxRequest request);
 
     void delete(Long id);

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     private static final String PROCESS_KEY = "medilinkprocess";
     private static final String CANCEL_MESSAGE = "annulation de rendez-vous";
     private static final String RESCHEDULE_MESSAGE = "changement de rendez-vous";
+    private static final Set<String> MEDICAL_TRANSIENT_VARIABLES = Set.of(
+            "motifConsultation", "symptomes", "diagnostic", "observations",
+            "traitementRecommande", "examensComplementaires", "recommandations"
+    );
 
     private final RuntimeService runtimeService;
     private final TaskService taskService;
@@ -181,7 +186,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 task.getTaskDefinitionKey(),
                 variables
         );
-        taskService.complete(taskId, safeVariables);
+        completeWithoutMedicalHistory(taskId, safeVariables);
         return getStatus(processInstanceId);
     }
 
@@ -205,7 +210,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 task.getTaskDefinitionKey(),
                 variables
         );
-        taskService.complete(taskId, safeVariables);
+        completeWithoutMedicalHistory(taskId, safeVariables);
         return getStatus(processInstanceId);
     }
 
@@ -268,6 +273,18 @@ public class WorkflowServiceImpl implements WorkflowService {
     private String stringVariable(String taskId, String name) {
         Object value = taskService.getVariable(taskId, name);
         return value instanceof String text ? text : "";
+    }
+
+    private void completeWithoutMedicalHistory(String taskId, Map<String, Object> variables) {
+        Map<String, Object> persistent = new HashMap<>(variables);
+        Map<String, Object> transientVariables = new HashMap<>();
+        MEDICAL_TRANSIENT_VARIABLES.forEach(name -> {
+            Object value = persistent.remove(name);
+            if (value != null) {
+                transientVariables.put(name, value);
+            }
+        });
+        taskService.complete(taskId, persistent, transientVariables);
     }
 
 }

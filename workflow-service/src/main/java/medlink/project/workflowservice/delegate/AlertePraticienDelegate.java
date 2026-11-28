@@ -3,6 +3,7 @@ package medlink.project.workflowservice.delegate;
 import lombok.RequiredArgsConstructor;
 import medlink.grpc.praticien.v1.PraticienGrpcResponse;
 import medlink.project.workflowservice.client.PraticienGrpcClient;
+import medlink.project.workflowservice.client.AuthGrpcClient;
 import medlink.project.workflowservice.dto.SendNotificationRequest;
 import medlink.project.workflowservice.service.NotificationService;
 import org.flowable.engine.delegate.DelegateExecution;
@@ -15,6 +16,7 @@ public class AlertePraticienDelegate implements JavaDelegate {
 
     private final NotificationService notificationService;
     private final PraticienGrpcClient praticienGrpcClient;
+    private final AuthGrpcClient authGrpcClient;
 
     @Override
     public void execute(DelegateExecution execution) {
@@ -30,6 +32,21 @@ public class AlertePraticienDelegate implements JavaDelegate {
                 true,
                 execution.getProcessInstanceId()
         ));
+
+        Object patientId = execution.getVariable("patientId");
+        if (patientId instanceof Number number) {
+            var patient = authGrpcClient.getPatientByBusinessId(number.longValue());
+            notificationService.sendNotification(new SendNotificationRequest(
+                    patient.getId(),
+                    "PATIENT",
+                    "RENDEZ_VOUS_ANNULATION",
+                    "Rendez-vous annulé",
+                    "Votre rendez-vous n° " + execution.getVariable("rdvId") + " a été annulé.",
+                    patient.getEmail(),
+                    true,
+                    execution.getProcessInstanceId() + ":patient-annulation"
+            ));
+        }
     }
 
     private Recipient resolvePraticien(DelegateExecution execution) {

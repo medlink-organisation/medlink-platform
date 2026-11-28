@@ -46,7 +46,11 @@ public class CompteRenduDto {
             groups = {OnCreate.class, OnUpdate.class},
             message = "L'identifiant du praticien est obligatoire"
     )
-    private UUID praticienId;
+    private Long praticienId;
+
+    private Long cliniqueId;
+
+    private LocalDateTime dateConsultation;
 
     @Null(
             groups = {OnCreate.class, OnUpdate.class},
@@ -59,4 +63,15 @@ public class CompteRenduDto {
             message = "Le contenu est obligatoire"
     )
     private String contenu;
+
+    private String motif;
+    private String symptomes;
+    private String diagnostic;
+    private String observations;
+    private String traitementRecommande;
+    private String examensComplementaires;
+    private String recommandations;
+    private Boolean controleRequis;
+    private String praticienNom;
+    private String praticienPrenom;
 }

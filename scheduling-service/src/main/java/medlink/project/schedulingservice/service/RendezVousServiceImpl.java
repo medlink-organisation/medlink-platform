@@ -153,7 +153,7 @@ public class RendezVousServiceImpl implements RendezVousService {
             Pageable pageable
     ) {
 
-        return repository.findPatientsByPraticien(
+        Page<RendezVous> rendezVousPage = repository.findPatientsByPraticien(
                 praticienId,
                 List.of(
                         StatusRendezVous.CONFIRME,
@@ -161,13 +161,21 @@ public class RendezVousServiceImpl implements RendezVousService {
                 ),
                 StatusRendezVous.TERMINE,
                 pageable
-        ).map(rendezVous -> new PraticienPatientDto(
+        );
+        Map<Long, PatientIdentityService.PatientIdentity> patients = patientIdentityService
+                .getByBusinessIds(rendezVousPage.stream().map(RendezVous::getPatientId).toList());
+        return rendezVousPage.map(rendezVous -> {
+            var patient = patients.get(rendezVous.getPatientId());
+            return new PraticienPatientDto(
                 rendezVous.getPatientId().toString(),
+                patient == null ? "" : patient.nom(),
+                patient == null ? "" : patient.prenom(),
                 rendezVous.getId(),
                 rendezVous.getCreneau().getDateDebut(),
                 rendezVous.getCreneau().getCliniqueId(),
                 rendezVous.getStatus()
-        ));
+            );
+        });
     }
 
     @Override
@@ -290,7 +298,7 @@ public class RendezVousServiceImpl implements RendezVousService {
         Creneau creneau = rendezVous.getCreneau();
         return new RendezVousAgendaDto(
                 rendezVous.getId(),
-                rendezVous.getPatientId(),
+                rendezVous.getPatientId().toString(),
                 creneau.getPraticienId(),
                 creneau.getCliniqueId(),
                 creneau.getId(),

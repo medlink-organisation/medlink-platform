@@ -48,7 +48,11 @@ public class ResultatExamenValidator {
         }
     }
 
-    public void validateUploadMetadata(String typeExamen, LocalDate dateExamen) {
+    public void validateUploadMetadata(
+            String typeExamen,
+            LocalDate dateExamen,
+            String commentaire
+    ) {
         if (typeExamen == null || typeExamen.isBlank()) {
             throw new BusinessValidationException("Le type d'examen est obligatoire.");
         }
@@ -62,6 +66,11 @@ public class ResultatExamenValidator {
         }
         if (dateExamen.isAfter(LocalDate.now())) {
             throw new BusinessValidationException("La date de l'examen ne peut pas être future.");
+        }
+        if (commentaire != null && commentaire.trim().length() > 4000) {
+            throw new BusinessValidationException(
+                    "Le commentaire ne doit pas dépasser 4000 caractères."
+            );
         }
     }
 }

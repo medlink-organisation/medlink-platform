@@ -16,5 +16,5 @@ public interface MedicalRecordAccessService {
 
     void checkCanListAll();
 
-    void checkCanListByPractitioner(UUID practitionerId);
+    void checkCanListByPractitioner(Long practitionerId);
 }

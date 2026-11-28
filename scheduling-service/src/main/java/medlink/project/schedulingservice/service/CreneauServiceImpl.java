@@ -6,6 +6,7 @@ import medlink.project.schedulingservice.dto.GenerationCreneauxRequest;
 import medlink.project.schedulingservice.dto.GenerationCreneauxResponse;
 import medlink.project.schedulingservice.entities.Creneau;
 import medlink.project.schedulingservice.entities.StatutCreneau;
+import medlink.project.schedulingservice.entities.StatusRendezVous;
 import medlink.project.schedulingservice.exception.BusinessException;
 import medlink.project.schedulingservice.mapper.CreneauMapper;
 import medlink.project.schedulingservice.repositories.CreneauRepository;
@@ -76,6 +77,31 @@ public class CreneauServiceImpl implements CreneauService {
         validateCalendarRange(debut, fin);
         return repository.findCalendar(praticienId, cliniqueId, debut, fin)
                 .stream()
+                .map(mapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<CreneauDto> getAvailableForBooking(
+            Long praticienId,
+            Long cliniqueId,
+            LocalDateTime debut,
+            LocalDateTime fin
+    ) {
+        if (praticienId == null || praticienId <= 0 || cliniqueId == null || cliniqueId <= 0) {
+            throw new BusinessException("Le praticien et la clinique sont obligatoires.");
+        }
+        validateCalendarRange(debut, fin);
+        LocalDateTime effectiveStart = debut.isAfter(LocalDateTime.now())
+                ? debut : LocalDateTime.now();
+        return repository.findAvailableForBooking(
+                        praticienId,
+                        cliniqueId,
+                        effectiveStart,
+                        fin,
+                        StatutCreneau.DISPONIBLE,
+                        List.of(StatusRendezVous.EN_ATTENTE, StatusRendezVous.CONFIRME)
+                ).stream()
                 .map(mapper::toDto)
                 .toList();
     }

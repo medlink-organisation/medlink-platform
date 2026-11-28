@@ -13,9 +13,14 @@ public interface CompteRenduMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "dateRedaction", ignore = true)
     @Mapping(target = "dossierMedical", ignore = true)
+    @Mapping(target = "praticienId", ignore = true)
+    @Mapping(source = "praticienId", target = "praticienBusinessId")
     CompteRendu toEntity(CompteRenduDto dto);
 
     @Mapping(source = "dossierMedical.id", target = "dossierMedicalId")
+    @Mapping(source = "praticienBusinessId", target = "praticienId")
+    @Mapping(target = "praticienNom", ignore = true)
+    @Mapping(target = "praticienPrenom", ignore = true)
     CompteRenduDto toDto(CompteRendu entity);
 
     @Mapping(target = "id", ignore = true)
@@ -23,6 +28,7 @@ public interface CompteRenduMapper {
     @Mapping(target = "praticienId", ignore = true)
     @Mapping(target = "dateRedaction", ignore = true)
     @Mapping(target = "dossierMedical", ignore = true)
+    @Mapping(target = "praticienBusinessId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)

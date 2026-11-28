@@ -18,6 +18,15 @@ public interface DossierMedicalMapper {
     @Mapping(target = "documents", ignore = true)
     DossierMedical toEntity(DossierMedicalDto dto);
 
+    @Mapping(target = "patientNom", ignore = true)
+    @Mapping(target = "patientPrenom", ignore = true)
+    @Mapping(target = "patientEmail", ignore = true)
+    @Mapping(target = "patientTelephone", ignore = true)
+    @Mapping(target = "patientDateNaissance", ignore = true)
+    @Mapping(target = "patientSexe", ignore = true)
+    @Mapping(target = "comptesRendus", ignore = true)
+    @Mapping(target = "resultatsExamens", ignore = true)
+    @Mapping(target = "documentsMedicaux", ignore = true)
     DossierMedicalDto toDto(DossierMedical entity);
 
     @Mapping(target = "id", ignore = true)

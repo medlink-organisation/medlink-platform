@@ -50,8 +50,8 @@ public class CompteRenduValidator {
         }
     }
 
-    public void validatePraticienIsProvided(UUID praticienId) {
-        if (praticienId == null) {
+    public void validatePraticienIsProvided(Long praticienId) {
+        if (praticienId == null || praticienId <= 0) {
             throw new BusinessValidationException("L'identifiant du praticien est obligatoire.");
         }
     }

@@ -252,7 +252,7 @@ public class AuthGrpcEndpoint extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBas
     private PatientResponse toGrpc(
             medlink.project.authservice.dto.PatientResponse patient
     ) {
-        return PatientResponse.newBuilder()
+        PatientResponse.Builder response = PatientResponse.newBuilder()
                 .setId(valueOrEmpty(patient.id()))
                 .setUsername(valueOrEmpty(patient.username()))
                 .setEmail(valueOrEmpty(patient.email()))
@@ -260,8 +260,11 @@ public class AuthGrpcEndpoint extends AuthGrpcServiceGrpc.AuthGrpcServiceImplBas
                 .setLastName(valueOrEmpty(patient.lastName()))
                 .setEnabled(patient.enabled())
                 .setEmailVerified(patient.emailVerified())
-                .setBusinessPatientId(patient.businessPatientId())
-                .build();
+                .setBusinessPatientId(patient.businessPatientId());
+        if (patient.birthDate() != null) response.setBirthDate(patient.birthDate());
+        if (patient.gender() != null) response.setGender(patient.gender());
+        if (patient.phone() != null) response.setPhone(patient.phone());
+        return response.build();
     }
 
     private BooleanResponse booleanResponse(boolean value) {

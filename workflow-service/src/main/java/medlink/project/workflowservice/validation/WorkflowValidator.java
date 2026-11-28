@@ -127,8 +127,16 @@ public class WorkflowValidator {
             }
             case PRESENCE_TASK ->
                     result.put("patientPresent", booleanValue(source, "patientPresent"));
-            case COMPLETE_CONSULTATION_TASK ->
-                    result.put("controleRequis", booleanValue(source, "controleRequis"));
+            case COMPLETE_CONSULTATION_TASK -> {
+                result.put("controleRequis", booleanValue(source, "controleRequis"));
+                result.put("motifConsultation", boundedText(source, "motifConsultation", 2000));
+                result.put("symptomes", boundedText(source, "symptomes", 5000));
+                result.put("diagnostic", boundedText(source, "diagnostic", 5000));
+                result.put("observations", boundedText(source, "observations", 10000));
+                result.put("traitementRecommande", boundedText(source, "traitementRecommande", 5000));
+                result.put("examensComplementaires", boundedText(source, "examensComplementaires", 5000));
+                result.put("recommandations", boundedText(source, "recommandations", 5000));
+            }
             case FOLLOW_UP_TASK -> validateFollowUpVariables(source, result);
             default -> throw new WorkflowStateException(
                     "Type de tâche non pris en charge : " + definitionKey);
@@ -173,5 +181,17 @@ public class WorkflowValidator {
             throw new WorkflowValidationException(name + " doit être booléen");
         }
         return bool;
+    }
+
+    private String boundedText(Map<String, Object> variables, String name, int maxLength) {
+        Object value = variables.get(name);
+        if (!(value instanceof String text) || text.isBlank()) {
+            throw new WorkflowValidationException(name + " obligatoire");
+        }
+        String normalized = text.trim();
+        if (normalized.length() > maxLength) {
+            throw new WorkflowValidationException(name + " est trop long");
+        }
+        return normalized;
     }
 }

@@ -11,6 +11,8 @@ import medlink.project.schedulingservice.validtaion.OnCreate;
 import medlink.project.schedulingservice.validtaion.OnUpdate;
 
 import java.util.UUID;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 @Getter
 @Setter
@@ -51,6 +53,7 @@ public class RendezVousDto {
             groups = OnUpdate.class,
             message = "Le patient ne peut pas être modifié"
     )
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long patientId;
 
     @Null(

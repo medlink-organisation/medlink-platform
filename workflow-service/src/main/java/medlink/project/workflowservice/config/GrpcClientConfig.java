@@ -4,6 +4,7 @@ import medlink.grpc.auth.v1.AuthGrpcServiceGrpc;
 import medlink.grpc.creaneau.v1.CreneauGrpcServiceGrpc;
 import medlink.grpc.praticien.v1.PraticienGrpcServiceGrpc;
 import medlink.grpc.rendezvous.v1.RendezVousGrpcServiceGrpc;
+import medlink.grpc.medical.v1.MedicalRecordGrpcServiceGrpc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.grpc.client.GrpcChannelFactory;
@@ -14,6 +15,7 @@ public class GrpcClientConfig {
     private static final String SCHEDULING_SERVICE = "scheduling-service";
     private static final String AUTH_SERVICE = "auth-service";
     private static final String PRATICIEN_SERVICE = "praticien-service";
+    private static final String MEDICAL_RECORD_SERVICE = "medical-record-service";
 
     @Bean
     CreneauGrpcServiceGrpc.CreneauGrpcServiceBlockingStub creneauGrpcStub(
@@ -48,6 +50,14 @@ public class GrpcClientConfig {
 
         return PraticienGrpcServiceGrpc.newBlockingStub(
                 channelFactory.createChannel(PRATICIEN_SERVICE)
+        );
+    }
+
+    @Bean
+    MedicalRecordGrpcServiceGrpc.MedicalRecordGrpcServiceBlockingStub medicalRecordGrpcStub(
+            GrpcChannelFactory channelFactory) {
+        return MedicalRecordGrpcServiceGrpc.newBlockingStub(
+                channelFactory.createChannel(MEDICAL_RECORD_SERVICE)
         );
     }
 }

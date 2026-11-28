@@ -63,9 +63,19 @@ public class MedicalRecordPdfService {
                 writer.line("Aucun compte rendu.");
             }
             for (CompteRendu compteRendu : comptesRendus) {
-                writer.line(compteRendu.getDateRedaction().format(DATE_TIME)
-                        + " - Praticien " + compteRendu.getPraticienId());
-                writer.line(compteRendu.getContenu());
+                var consultationDate = compteRendu.getDateConsultation() == null
+                        ? compteRendu.getDateRedaction() : compteRendu.getDateConsultation();
+                writer.line(consultationDate.format(DATE_TIME)
+                        + " - Praticien " + (compteRendu.getPraticienBusinessId() == null
+                        ? compteRendu.getPraticienId() : compteRendu.getPraticienBusinessId()));
+                writeIfPresent(writer, "Motif : ", compteRendu.getMotif());
+                writeIfPresent(writer, "Symptomes : ", compteRendu.getSymptomes());
+                writeIfPresent(writer, "Diagnostic : ", compteRendu.getDiagnostic());
+                writeIfPresent(writer, "Observations : ", compteRendu.getObservations());
+                writeIfPresent(writer, "Traitement : ", compteRendu.getTraitementRecommande());
+                writeIfPresent(writer, "Examens complementaires : ", compteRendu.getExamensComplementaires());
+                writeIfPresent(writer, "Recommandations : ", compteRendu.getRecommandations());
+                writeIfPresent(writer, "Compte rendu historique : ", compteRendu.getContenu());
             }
             writer.close();
             document.save(output);
@@ -80,6 +90,12 @@ public class MedicalRecordPdfService {
             throw new BusinessValidationException(
                     "Impossible de generer le PDF du dossier medical."
             );
+        }
+    }
+
+    private void writeIfPresent(PdfWriter writer, String label, String value) throws IOException {
+        if (value != null && !value.isBlank()) {
+            writer.line(label + value);
         }
     }
 

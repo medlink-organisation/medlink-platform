@@ -76,6 +76,9 @@ message PatientResponse {
   bool enabled = 6;
   bool email_verified = 7;
   int64 business_patient_id = 8;
+  optional string birth_date = 9;
+  optional string gender = 10;
+  optional string phone = 11;
 }
 
 message PatientPageResponse {

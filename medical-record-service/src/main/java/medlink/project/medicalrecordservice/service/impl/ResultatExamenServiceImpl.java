@@ -55,7 +55,7 @@ public class ResultatExamenServiceImpl implements ResultatExamenService {
         authenticatedUserService.requireAuthenticatedJwt();
         accessService.checkCanAttachResult(dossierId, rendezVousId);
         DossierMedical dossier = validator.validateDossierExists(dossierId);
-        validator.validateUploadMetadata(typeExamen, dateExamen);
+        validator.validateUploadMetadata(typeExamen, dateExamen, conclusion);
         byte[] pdfBytes = fileSecurityValidator.validateAndReadPdf(file);
 
         clamAvService.scan(new ByteArrayInputStream(pdfBytes));

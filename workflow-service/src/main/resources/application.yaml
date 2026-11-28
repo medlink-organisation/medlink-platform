@@ -23,8 +23,8 @@ spring:
           target: ${AUTH_GRPC_TARGET:static://localhost:9091}
         praticien-service:
           target: ${PRATICIEN_GRPC_TARGET:static://localhost:9092}
-
-
+        medical-record-service:
+          target: ${MEDICAL_RECORD_GRPC_TARGET:static://localhost:9095}
 
   cloud:
     stream:
@@ -45,4 +45,15 @@ spring:
         enabled: true
         backend: secret
         backend-version: 2
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  grpc:
+    client:
+      channel:
+        medical-record-service:
+          target: ${MEDICAL_RECORD_GRPC_TARGET:static://medical-record-service:9095}
 

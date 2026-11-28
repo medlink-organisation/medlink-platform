@@ -44,7 +44,6 @@ public class GrpcSecurityConfig {
                                     "Bearer " + jwt.getToken().getTokenValue()
                             );
                         }
-
                         super.start(responseListener, headers);
                     }
                 };

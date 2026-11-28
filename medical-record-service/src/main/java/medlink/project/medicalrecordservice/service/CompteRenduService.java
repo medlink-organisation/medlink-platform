@@ -16,7 +16,7 @@ public interface CompteRenduService {
 
     Page<CompteRenduDto> getByDossier(Long dossierId, Pageable pageable);
 
-    Page<CompteRenduDto> getByPraticien(UUID praticienId, Pageable pageable);
+    Page<CompteRenduDto> getByPraticien(Long praticienId, Pageable pageable);
 
     void delete(UUID id);
 }

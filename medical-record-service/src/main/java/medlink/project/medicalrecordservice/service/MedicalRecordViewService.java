@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public interface MedicalRecordViewService {
 
+    DossierMedicalDto getMine();
+
     DossierMedicalDto getForAppointment(UUID rendezVousId);
 
     Page<ResultatExamenDto> getResultsForAppointment(

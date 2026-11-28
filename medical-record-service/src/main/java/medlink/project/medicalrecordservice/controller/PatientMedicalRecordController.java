@@ -3,8 +3,6 @@ package medlink.project.medicalrecordservice.controller;
 import lombok.RequiredArgsConstructor;
 import medlink.project.medicalrecordservice.dto.DossierMedicalDto;
 import medlink.project.medicalrecordservice.dto.ResultatExamenDto;
-import medlink.project.medicalrecordservice.security.authorization.AuthenticatedUserService;
-import medlink.project.medicalrecordservice.service.DossierMedicalService;
 import medlink.project.medicalrecordservice.service.ResultatExamenService;
 import medlink.project.medicalrecordservice.service.DownloadedDocument;
 import medlink.project.medicalrecordservice.service.MedicalRecordViewService;
@@ -28,16 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PatientMedicalRecordController {
 
-    private final AuthenticatedUserService authenticatedUserService;
-    private final DossierMedicalService dossierMedicalService;
     private final ResultatExamenService resultatExamenService;
     private final MedicalRecordViewService medicalRecordViewService;
 
     @GetMapping
     public DossierMedicalDto getMyRecord() {
-        return dossierMedicalService.getByPatientId(
-                authenticatedUserService.requirePatientId()
-        );
+        return medicalRecordViewService.getMine();
     }
 
     @GetMapping("/exam-results")

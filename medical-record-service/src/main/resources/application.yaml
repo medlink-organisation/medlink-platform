@@ -9,12 +9,16 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE}
 
   grpc:
+    server:
+      port: ${MEDICAL_RECORD_GRPC_PORT:9095}
     client:
       channel:
         praticien-service:
           target: ${PRATICIEN_GRPC_TARGET:static://localhost:9092}
         scheduling-service:
           target: ${SCHEDULING_GRPC_TARGET:static://localhost:9093}
+        auth-service:
+          target: ${AUTH_GRPC_TARGET:static://localhost:9091}
 
   cloud:
     vault:
@@ -42,3 +46,5 @@ spring:
           target: ${PRATICIEN_GRPC_TARGET:static://praticien-service:9092}
         scheduling-service:
           target: ${SCHEDULING_GRPC_TARGET:static://scheduling-service:9093}
+        auth-service:
+          target: ${AUTH_GRPC_TARGET:static://auth-service:9091}

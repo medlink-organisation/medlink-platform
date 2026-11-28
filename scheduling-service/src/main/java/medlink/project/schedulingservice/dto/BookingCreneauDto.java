@@ -1,5 +1,6 @@
 package medlink.project.schedulingservice.dto;
 
+import medlink.project.schedulingservice.entities.StatutCreneau;
 import java.time.LocalDateTime;
 
 public record BookingCreneauDto(
@@ -7,5 +8,6 @@ public record BookingCreneauDto(
         Long praticienId,
         Long cliniqueId,
         LocalDateTime dateDebut,
-        LocalDateTime dateFin) {
+        LocalDateTime dateFin,
+        StatutCreneau statut) {
 }

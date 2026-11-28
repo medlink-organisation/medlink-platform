@@ -59,15 +59,48 @@ public class CompteRendu extends AuditableEntity {
     @Column(name = "rendez_vous_id", nullable = false)
     private UUID rendezVousId;
 
-    @Column(name = "praticien_id", nullable = false)
+    @Column(name = "praticien_id")
     private UUID praticienId;
+
+    @Column(name = "praticien_business_id")
+    private Long praticienBusinessId;
+
+    @Column(name = "clinique_id")
+    private Long cliniqueId;
+
+    @Column(name = "date_consultation")
+    private LocalDateTime dateConsultation;
 
     @CreationTimestamp
     @Column(name = "date_redaction", nullable = false, updatable = false)
     private LocalDateTime dateRedaction;
 
-    @Column(name = "contenu", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "contenu", columnDefinition = "TEXT")
     private String contenu;
+
+    @Column(name = "motif", columnDefinition = "TEXT")
+    private String motif;
+
+    @Column(name = "symptomes", columnDefinition = "TEXT")
+    private String symptomes;
+
+    @Column(name = "diagnostic", columnDefinition = "TEXT")
+    private String diagnostic;
+
+    @Column(name = "observations", columnDefinition = "TEXT")
+    private String observations;
+
+    @Column(name = "traitement_recommande", columnDefinition = "TEXT")
+    private String traitementRecommande;
+
+    @Column(name = "examens_complementaires", columnDefinition = "TEXT")
+    private String examensComplementaires;
+
+    @Column(name = "recommandations", columnDefinition = "TEXT")
+    private String recommandations;
+
+    @Column(name = "controle_requis")
+    private Boolean controleRequis;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "dossier_medical_id", nullable = false)

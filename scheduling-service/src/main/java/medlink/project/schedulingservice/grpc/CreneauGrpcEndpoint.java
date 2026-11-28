@@ -11,12 +11,14 @@ import medlink.project.schedulingservice.service.CreneauService;
 import org.springframework.grpc.server.service.GrpcService;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @GrpcService
 @RequiredArgsConstructor
 public class CreneauGrpcEndpoint extends CreneauGrpcServiceGrpc.CreneauGrpcServiceImplBase {
+
+    private static final ZoneId BUSINESS_TIME_ZONE = ZoneId.of("Africa/Tunis");
 
     private final CreneauService creneauService;
 
@@ -71,7 +73,7 @@ public class CreneauGrpcEndpoint extends CreneauGrpcServiceGrpc.CreneauGrpcServi
     }
 
     private Timestamp toTimestamp(LocalDateTime dateTime) {
-        var instant = dateTime.toInstant(ZoneOffset.UTC);
+        var instant = dateTime.atZone(BUSINESS_TIME_ZONE).toInstant();
         return Timestamp.newBuilder().setSeconds(instant.getEpochSecond())
                 .setNanos(instant.getNano()).build();
     }

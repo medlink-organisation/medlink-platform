@@ -6,5 +6,5 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 public record CreneauAppointmentSummaryDto(
-        UUID id, LocalTime heureDebut, LocalTime heureFin, Long patientId, Long cliniqueId, StatusRendezVous statut
+        UUID id, LocalTime heureDebut, LocalTime heureFin, String patientId, Long cliniqueId, StatusRendezVous statut
 ) {}

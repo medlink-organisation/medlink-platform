@@ -13,7 +13,7 @@ public interface CompteRenduRepository extends JpaRepository<CompteRendu, UUID> 
 
     Page<CompteRendu> findByDossierMedicalId(Long dossierId, Pageable pageable);
 
-    Page<CompteRendu> findByPraticienId(UUID praticienId, Pageable pageable);
+    Page<CompteRendu> findByPraticienBusinessId(Long praticienId, Pageable pageable);
 
     boolean existsByRendezVousId(UUID rendezVousId);
 

@@ -40,10 +40,12 @@ public class InternalMedicalRecordController {
             @RequestBody CompteRenduDto dto
     ) {
         return ResponseEntity.ok(service.saveCompteRendu(
-                dossierId,
-                rendezVousId,
-                dto.getPraticienId(),
-                dto.getContenu()
-        ));
+                new InternalMedicalRecordService.ConsultationReportCommand(
+                        dossierId, rendezVousId, dto.getPraticienId(), dto.getCliniqueId(),
+                        dto.getDateConsultation(), dto.getMotif(), dto.getSymptomes(),
+                        dto.getDiagnostic(), dto.getObservations(), dto.getTraitementRecommande(),
+                        dto.getExamensComplementaires(), dto.getRecommandations(),
+                        Boolean.TRUE.equals(dto.getControleRequis())
+                )));
     }
 }

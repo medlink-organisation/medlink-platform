@@ -1,6 +1,8 @@
 package medlink.project.schedulingservice.repositories;
 
 import medlink.project.schedulingservice.entities.Creneau;
+import medlink.project.schedulingservice.entities.StatutCreneau;
+import medlink.project.schedulingservice.entities.StatusRendezVous;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,6 +33,28 @@ public interface CreneauRepository extends JpaRepository<Creneau,Long> {
             @Param("cliniqueId") Long cliniqueId,
             @Param("debut") LocalDateTime debut,
             @Param("fin") LocalDateTime fin
+    );
+
+    @Query("""
+            select c from Creneau c
+            where c.praticienId = :praticienId
+              and c.cliniqueId = :cliniqueId
+              and c.statut = :availableStatus
+              and c.dateDebut >= :debut
+              and c.dateDebut < :fin
+              and not exists (
+                  select r.id from RendezVous r
+                  where r.creneau = c and r.status in :blockingStatuses
+              )
+            order by c.dateDebut asc
+            """)
+    List<Creneau> findAvailableForBooking(
+            @Param("praticienId") Long praticienId,
+            @Param("cliniqueId") Long cliniqueId,
+            @Param("debut") LocalDateTime debut,
+            @Param("fin") LocalDateTime fin,
+            @Param("availableStatus") StatutCreneau availableStatus,
+            @Param("blockingStatuses") List<StatusRendezVous> blockingStatuses
     );
 
     @Query("select min(c.dateDebut) from Creneau c where c.praticienId = :praticienId")

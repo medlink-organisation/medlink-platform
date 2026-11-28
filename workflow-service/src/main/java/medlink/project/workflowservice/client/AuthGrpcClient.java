@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import medlink.grpc.auth.v1.AuthGrpcServiceGrpc;
 import medlink.grpc.auth.v1.GetUserContactRequest;
 import medlink.grpc.auth.v1.GetPatientByIdRequest;
+import medlink.grpc.auth.v1.GetPatientsByBusinessIdsRequest;
 import medlink.grpc.auth.v1.PatientResponse;
 import medlink.grpc.auth.v1.UserContactResponse;
 import org.springframework.stereotype.Service;
@@ -38,5 +39,21 @@ public class AuthGrpcClient {
                 .resolveActivePatient(GetPatientByIdRequest.newBuilder()
                         .setKeycloakId(keycloakId)
                         .build());
+    }
+
+    public PatientResponse getPatientByBusinessId(long patientId) {
+        if (patientId <= 0) {
+            throw new IllegalArgumentException("patientId doit être positif");
+        }
+        return stub.withDeadlineAfter(3, TimeUnit.SECONDS)
+                .getPatientsByBusinessIds(GetPatientsByBusinessIdsRequest.newBuilder()
+                        .addBusinessPatientIds(patientId)
+                        .build())
+                .getPatientsList()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Patient métier introuvable : " + patientId
+                ));
     }
 }

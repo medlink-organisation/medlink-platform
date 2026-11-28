@@ -53,7 +53,7 @@ public class CreneauCalendarQueryService {
                 .findAgendaByPraticien(praticienId, date.atStartOfDay(), date.plusDays(1).atStartOfDay()).stream()
                 .map(rendezVous -> new CreneauAppointmentSummaryDto(
                         rendezVous.getId(), rendezVous.getCreneau().getDateDebut().toLocalTime(),
-                        rendezVous.getCreneau().getDateFin().toLocalTime(), rendezVous.getPatientId(),
+                        rendezVous.getCreneau().getDateFin().toLocalTime(), rendezVous.getPatientId().toString(),
                         rendezVous.getCreneau().getCliniqueId(), rendezVous.getStatus()))
                 .toList();
         return new CreneauDayDetailsDto(summary, appointments);

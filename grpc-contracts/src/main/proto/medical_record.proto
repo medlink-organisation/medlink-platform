@@ -9,11 +9,61 @@ option java_package = "medlink.grpc.medical.v1";
 import "google/protobuf/timestamp.proto";
 
 service MedicalRecordGrpcService {
+  rpc EnsureMedicalRecord(EnsureMedicalRecordRequest)
+      returns (MedicalRecordResponse);
+
+  rpc SaveConsultationReport(SaveConsultationReportRequest)
+      returns (ConsultationReportResponse);
+
+  rpc RegularizeCompletedAppointment(RegularizeCompletedAppointmentRequest)
+      returns (MedicalRecordResponse);
+
   rpc GetRecordMetadata(GetRecordMetadataRequest)
       returns (RecordMetadataResponse);
 
   rpc AttachValidatedExam(AttachValidatedExamRequest)
       returns (AttachValidatedExamResponse);
+}
+
+message EnsureMedicalRecordRequest {
+  int64 patient_id = 1;
+  string idempotency_key = 2;
+}
+
+message MedicalRecordResponse {
+  int64 record_id = 1;
+  int64 patient_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp last_modified_at = 4;
+}
+
+message SaveConsultationReportRequest {
+  int64 record_id = 1;
+  string appointment_id = 2;
+  int64 practitioner_id = 3;
+  int64 clinic_id = 4;
+  google.protobuf.Timestamp consultation_at = 5;
+  string reason = 6;
+  string symptoms = 7;
+  string diagnosis = 8;
+  string observations = 9;
+  string recommended_treatment = 10;
+  string additional_examinations = 11;
+  string recommendations = 12;
+  bool follow_up_required = 13;
+  string idempotency_key = 14;
+}
+
+message ConsultationReportResponse {
+  string report_id = 1;
+  int64 record_id = 2;
+  string appointment_id = 3;
+  google.protobuf.Timestamp recorded_at = 4;
+}
+
+message RegularizeCompletedAppointmentRequest {
+  string appointment_id = 1;
+  string idempotency_key = 2;
 }
 
 message GetRecordMetadataRequest {

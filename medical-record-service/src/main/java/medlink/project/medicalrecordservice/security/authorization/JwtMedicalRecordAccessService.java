@@ -154,7 +154,7 @@ public class JwtMedicalRecordAccessService implements MedicalRecordAccessService
     }
 
     @Override
-    public void checkCanListByPractitioner(UUID practitionerId) {
+    public void checkCanListByPractitioner(Long practitionerId) {
         deny();
     }
 

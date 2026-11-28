@@ -3,7 +3,6 @@ package medlink.project.schedulingservice.controller;
 import lombok.RequiredArgsConstructor;
 import medlink.project.schedulingservice.dto.CreneauDto;
 import medlink.project.schedulingservice.dto.BookingCreneauDto;
-import medlink.project.schedulingservice.entities.StatutCreneau;
 import medlink.project.schedulingservice.dto.GenerationCreneauxRequest;
 import medlink.project.schedulingservice.dto.GenerationCreneauxResponse;
 import medlink.project.schedulingservice.dto.CreneauMonthDto;
@@ -101,14 +100,11 @@ public class CreneauController {
             @RequestParam LocalDateTime debut,
             @RequestParam LocalDateTime fin
     ) {
-        LocalDateTime now = LocalDateTime.now();
-        return ResponseEntity.ok(service.getCalendar(praticienId, cliniqueId, debut, fin)
+        return ResponseEntity.ok(service.getAvailableForBooking(praticienId, cliniqueId, debut, fin)
                 .stream()
-                .filter(slot -> slot.getStatut() == StatutCreneau.DISPONIBLE)
-                .filter(slot -> slot.getDateDebut().isAfter(now))
                 .map(slot -> new BookingCreneauDto(
                         slot.getId(), slot.getPraticienId(), slot.getCliniqueId(),
-                        slot.getDateDebut(), slot.getDateFin()))
+                        slot.getDateDebut(), slot.getDateFin(), slot.getStatut()))
                 .toList());
     }
 

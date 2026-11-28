@@ -46,7 +46,7 @@ public class MedicalRecordAccessConfiguration {
             }
 
             @Override
-            public void checkCanListByPractitioner(UUID practitionerId) {
+            public void checkCanListByPractitioner(Long practitionerId) {
                 deny();
             }
 

@@ -52,7 +52,7 @@ public class CompteRenduServiceImpl implements CompteRenduService {
         accessService.checkCanWrite(entity.getDossierMedical().getId());
         if (!Objects.equals(entity.getDossierMedical().getId(), dto.getDossierMedicalId())
                 || !Objects.equals(entity.getRendezVousId(), dto.getRendezVousId())
-                || !Objects.equals(entity.getPraticienId(), dto.getPraticienId())) {
+                || !Objects.equals(entity.getPraticienBusinessId(), dto.getPraticienId())) {
             throw new BusinessValidationException(
                     "Le dossier, le rendez-vous et le praticien d'un compte rendu ne peuvent pas être modifiés."
             );
@@ -78,11 +78,11 @@ public class CompteRenduServiceImpl implements CompteRenduService {
     }
 
     @Override
-    public Page<CompteRenduDto> getByPraticien(UUID praticienId, Pageable pageable) {
+    public Page<CompteRenduDto> getByPraticien(Long praticienId, Pageable pageable) {
         authenticatedUserService.requireAuthenticatedJwt();
         accessService.checkCanListByPractitioner(praticienId);
         validator.validatePraticienIsProvided(praticienId);
-        return repository.findByPraticienId(praticienId, pageable).map(mapper::toDto);
+        return repository.findByPraticienBusinessId(praticienId, pageable).map(mapper::toDto);
     }
 
     @Override

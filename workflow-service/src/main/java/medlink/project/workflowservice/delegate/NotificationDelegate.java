@@ -2,6 +2,7 @@ package medlink.project.workflowservice.delegate;
 
 import lombok.RequiredArgsConstructor;
 import medlink.project.workflowservice.client.AuthGrpcClient;
+import medlink.project.workflowservice.client.PraticienGrpcClient;
 import medlink.project.workflowservice.dto.SendNotificationRequest;
 import medlink.project.workflowservice.service.NotificationService;
 import org.flowable.engine.delegate.DelegateExecution;
@@ -14,41 +15,49 @@ public class NotificationDelegate implements JavaDelegate {
 
     private final NotificationService notificationService;
     private final AuthGrpcClient authGrpcClient;
+    private final PraticienGrpcClient praticienGrpcClient;
 
     @Override
     public void execute(DelegateExecution execution) {
-        String email = resolvePatientEmail(execution);
-        String patientUserId = requiredString(execution, "actorUserId");
+        var patient = authGrpcClient.getPatientByBusinessId(requiredLong(execution, "patientId"));
         Object dateRdv = execution.getVariable("dateRdv");
 
         notificationService.sendNotification(new SendNotificationRequest(
-                patientUserId,
+                patient.getId(),
                 "PATIENT",
                 "RENDEZ_VOUS_CONFIRMATION",
                 "Confirmation de votre rendez-vous MedLink",
                 "Votre rendez-vous est confirmé pour le " + dateRdv + ".",
-                email,
+                patient.getEmail(),
                 true,
                 execution.getProcessInstanceId()
         ));
-    }
 
-    private String resolvePatientEmail(DelegateExecution execution) {
-        Object patientEmail = execution.getVariable("patientEmail");
-        if (patientEmail instanceof String email && !email.isBlank()) {
-            return email;
-        }
-
-        String actorUserId = requiredString(execution, "actorUserId");
-        String email = authGrpcClient.getUserContact(actorUserId).getEmail();
-        execution.setVariable("patientEmail", email);
-        return email;
+        var praticien = praticienGrpcClient.getById(requiredLong(execution, "praticienId"));
+        notificationService.sendNotification(new SendNotificationRequest(
+                praticien.getKeycloakId(),
+                "PRATICIEN",
+                "RENDEZ_VOUS_CONFIRMATION",
+                "Nouveau rendez-vous MedLink",
+                "Un rendez-vous est confirmé pour le " + dateRdv + ".",
+                praticien.getEmail(),
+                true,
+                execution.getProcessInstanceId() + ":praticien"
+        ));
     }
 
     private String requiredString(DelegateExecution execution, String name) {
         Object value = execution.getVariable(name);
         if (value instanceof String string && !string.isBlank()) {
             return string;
+        }
+        throw new IllegalArgumentException(name + " obligatoire");
+    }
+
+    private long requiredLong(DelegateExecution execution, String name) {
+        Object value = execution.getVariable(name);
+        if (value instanceof Number number && number.longValue() > 0) {
+            return number.longValue();
         }
         throw new IllegalArgumentException(name + " obligatoire");
     }

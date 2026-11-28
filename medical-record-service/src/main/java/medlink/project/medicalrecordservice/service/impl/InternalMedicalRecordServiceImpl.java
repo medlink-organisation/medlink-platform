@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +49,29 @@ public class InternalMedicalRecordServiceImpl implements InternalMedicalRecordSe
 
     @Override
     @Transactional
+    public CompteRenduDto saveCompteRendu(ConsultationReportCommand command) {
+        if (command == null) {
+            throw new BusinessValidationException("Le compte rendu est obligatoire.");
+        }
+        DossierMedical dossier = dossierRepository.findByIdForUpdate(command.dossierId())
+                .orElseThrow(() -> new BusinessValidationException("Dossier médical introuvable."));
+        compteRenduValidator.validatePraticienIsProvided(command.praticienId());
+        if (command.rendezVousId() == null) {
+            throw new BusinessValidationException("L'identifiant du rendez-vous est obligatoire.");
+        }
+        if (command.cliniqueId() == null || command.cliniqueId() <= 0) {
+            throw new BusinessValidationException("L'identifiant de la clinique est obligatoire.");
+        }
+        requireText(command.motif(), "Le motif de consultation est obligatoire.");
+        requireText(command.diagnostic(), "Le diagnostic est obligatoire.");
+
+        return compteRenduRepository.findByRendezVousId(command.rendezVousId())
+                .map(existing -> validateIdempotentRetry(existing, command))
+                .orElseGet(() -> createCompteRendu(dossier, command));
+    }
+
+    @Override
+    @Transactional
     public CompteRenduDto saveCompteRendu(
             Long dossierId,
             UUID rendezVousId,
@@ -55,17 +79,26 @@ public class InternalMedicalRecordServiceImpl implements InternalMedicalRecordSe
             String contenu
     ) {
         DossierMedical dossier = compteRenduValidator.validateDossierExists(dossierId);
-        compteRenduValidator.validatePraticienIsProvided(praticienId);
-        if (rendezVousId == null) {
-            throw new BusinessValidationException("L'identifiant du rendez-vous est obligatoire.");
+        if (rendezVousId == null || praticienId == null || contenu == null || contenu.isBlank()) {
+            throw new BusinessValidationException("Les données du compte rendu sont obligatoires.");
         }
-        if (contenu == null || contenu.isBlank()) {
-            throw new BusinessValidationException("Le contenu du compte rendu est obligatoire.");
-        }
-
         return compteRenduRepository.findByRendezVousId(rendezVousId)
-                .map(existing -> validateIdempotentRetry(existing, dossierId, praticienId, contenu))
-                .orElseGet(() -> createCompteRendu(dossier, rendezVousId, praticienId, contenu));
+                .map(existing -> {
+                    if (!Objects.equals(existing.getDossierMedical().getId(), dossierId)
+                            || !Objects.equals(existing.getPraticienId(), praticienId)
+                            || !Objects.equals(existing.getContenu(), contenu.trim())) {
+                        throw new BusinessValidationException(
+                                "Le rendez-vous possède déjà un compte rendu avec des données différentes.");
+                    }
+                    return compteRenduMapper.toDto(existing);
+                })
+                .orElseGet(() -> compteRenduMapper.toDto(compteRenduRepository.saveAndFlush(
+                        CompteRendu.builder()
+                                .dossierMedical(dossier)
+                                .rendezVousId(rendezVousId)
+                                .praticienId(praticienId)
+                                .contenu(contenu.trim())
+                                .build())));
     }
 
     private DossierMedicalDto createDossierSafely(Long patientId) {
@@ -83,33 +116,60 @@ public class InternalMedicalRecordServiceImpl implements InternalMedicalRecordSe
 
     private CompteRenduDto createCompteRendu(
             DossierMedical dossier,
-            UUID rendezVousId,
-            UUID praticienId,
-            String contenu
+            ConsultationReportCommand command
     ) {
         CompteRendu entity = CompteRendu.builder()
                 .dossierMedical(dossier)
-                .rendezVousId(rendezVousId)
-                .praticienId(praticienId)
-                .contenu(contenu.trim())
+                .rendezVousId(command.rendezVousId())
+                .praticienBusinessId(command.praticienId())
+                .cliniqueId(command.cliniqueId())
+                .dateConsultation(command.dateConsultation())
+                .motif(normalize(command.motif()))
+                .symptomes(normalize(command.symptomes()))
+                .diagnostic(normalize(command.diagnostic()))
+                .observations(normalize(command.observations()))
+                .traitementRecommande(normalize(command.traitementRecommande()))
+                .examensComplementaires(normalize(command.examensComplementaires()))
+                .recommandations(normalize(command.recommandations()))
+                .controleRequis(command.controleRequis())
                 .build();
-        return compteRenduMapper.toDto(compteRenduRepository.saveAndFlush(entity));
+        CompteRendu saved = compteRenduRepository.saveAndFlush(entity);
+        dossier.setDerniereModification(LocalDateTime.now());
+        dossierRepository.save(dossier);
+        return compteRenduMapper.toDto(saved);
     }
 
     private CompteRenduDto validateIdempotentRetry(
             CompteRendu existing,
-            Long dossierId,
-            UUID praticienId,
-            String contenu
+            ConsultationReportCommand command
     ) {
-        if (!Objects.equals(existing.getDossierMedical().getId(), dossierId)
-                || !Objects.equals(existing.getPraticienId(), praticienId)
-                || !Objects.equals(existing.getContenu(), contenu.trim())) {
+        if (!Objects.equals(existing.getDossierMedical().getId(), command.dossierId())
+                || !Objects.equals(existing.getPraticienBusinessId(), command.praticienId())
+                || !Objects.equals(existing.getCliniqueId(), command.cliniqueId())
+                || !Objects.equals(existing.getDateConsultation(), command.dateConsultation())
+                || !Objects.equals(existing.getMotif(), normalize(command.motif()))
+                || !Objects.equals(existing.getSymptomes(), normalize(command.symptomes()))
+                || !Objects.equals(existing.getDiagnostic(), normalize(command.diagnostic()))
+                || !Objects.equals(existing.getObservations(), normalize(command.observations()))
+                || !Objects.equals(existing.getTraitementRecommande(), normalize(command.traitementRecommande()))
+                || !Objects.equals(existing.getExamensComplementaires(), normalize(command.examensComplementaires()))
+                || !Objects.equals(existing.getRecommandations(), normalize(command.recommandations()))
+                || !Objects.equals(existing.getControleRequis(), command.controleRequis())) {
             throw new BusinessValidationException(
                     "Le rendez-vous possède déjà un compte rendu avec des données différentes."
             );
         }
         return compteRenduMapper.toDto(existing);
+    }
+
+    private void requireText(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new BusinessValidationException(message);
+        }
+    }
+
+    private String normalize(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private void validatePatientId(Long patientId) {

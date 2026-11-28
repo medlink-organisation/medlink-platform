@@ -21,6 +21,13 @@
     <userTask id="sid-67B03EB7-8B5A-44E7-9A78-55F7CE14FDAB" name="Terminer la consultation" flowable:assignee="${praticienId}" flowable:formFieldValidation="true">
       <extensionElements>
         <flowable:formProperty id="controleRequis" name="Un contrôle est-il requis ?" type="boolean" required="true"></flowable:formProperty>
+        <flowable:formProperty id="motifConsultation" name="Motif de consultation" type="string" required="true"></flowable:formProperty>
+        <flowable:formProperty id="symptomes" name="Symptômes observés" type="string" required="true"></flowable:formProperty>
+        <flowable:formProperty id="diagnostic" name="Diagnostic" type="string" required="true"></flowable:formProperty>
+        <flowable:formProperty id="observations" name="Observations médicales" type="string" required="true"></flowable:formProperty>
+        <flowable:formProperty id="traitementRecommande" name="Traitement recommandé" type="string" required="true"></flowable:formProperty>
+        <flowable:formProperty id="examensComplementaires" name="Examens complémentaires" type="string" required="true"></flowable:formProperty>
+        <flowable:formProperty id="recommandations" name="Recommandations" type="string" required="true"></flowable:formProperty>
         <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
       </extensionElements>
     </userTask>
@@ -49,27 +56,7 @@
       </userTask>
       <serviceTask id="sid-E7A37B44-7FAA-45FA-B490-5DAF81541578" name="Envoyer la confirmation
 " flowable:delegateExpression="${notificationDelegate}"></serviceTask>
-      <serviceTask id="sid-067D249E-16D8-4D8B-B44C-1C4C02617D29" name="Envoyer le rappel " flowable:type="mail">
-        <extensionElements>
-          <flowable:field name="to">
-            <flowable:expression><![CDATA[${patientEmail}]]></flowable:expression>
-          </flowable:field>
-          <flowable:field name="from">
-            <flowable:string><![CDATA[medilink.support1@gmail.com]]></flowable:string>
-          </flowable:field>
-          <flowable:field name="subject">
-            <flowable:string><![CDATA[Rappel de votre rendez-vous MedLink]]></flowable:string>
-          </flowable:field>
-          <flowable:field name="text">
-            <flowable:expression><![CDATA[Bonjour,
-vous avez un rendez-vous prévu le ${dateRdv}.
-Merci de vous présenter à l'heure.]]></flowable:expression>
-          </flowable:field>
-          <flowable:field name="charset">
-            <flowable:string><![CDATA[UTF-8]]></flowable:string>
-          </flowable:field>
-        </extensionElements>
-      </serviceTask>
+      <serviceTask id="sid-067D249E-16D8-4D8B-B44C-1C4C02617D29" name="Envoyer le rappel " flowable:delegateExpression="${rappelNotificationDelegate}"></serviceTask>
       <startEvent id="sid-0F12B9AC-D8E6-4CFD-95D7-E19D8B3A341F" flowable:formFieldValidation="true"></startEvent>
       <endEvent id="sid-F63D3D19-E421-4A8E-ADB5-4719D05C34D1"></endEvent>
       <intermediateCatchEvent id="timerRappel" name="24 h avant">
