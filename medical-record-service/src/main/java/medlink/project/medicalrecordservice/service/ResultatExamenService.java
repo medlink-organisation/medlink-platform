@@ -25,5 +25,7 @@ public interface ResultatExamenService {
 
     DownloadedDocument download(UUID id);
 
+    DownloadedDocument downloadForAppointment(UUID rendezVousId, UUID id);
+
     void delete(UUID id);
 }

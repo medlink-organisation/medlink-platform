@@ -33,7 +33,7 @@ public class PraticienGrpcMapper {
             PraticienDto dto
     ) {
 
-        return PraticienGrpcResponse.newBuilder()
+        PraticienGrpcResponse.Builder builder = PraticienGrpcResponse.newBuilder()
                 .setId(dto.getId())
                 .setKeycloakId(dto.getKeycloakId())
                 .setNom(dto.getNom())
@@ -42,7 +42,10 @@ public class PraticienGrpcMapper {
                 .setPhone(dto.getPhone())
                 .setNumeroOrdre(dto.getNumeroOrdre())
                 .setSpecialiteId(dto.getSpecialiteId())
-                .setActif(Boolean.TRUE.equals(dto.getActif()))
-                .build();
+                .setActif(Boolean.TRUE.equals(dto.getActif()));
+        if (dto.getSpecialiteNom() != null) {
+            builder.setSpecialiteNom(dto.getSpecialiteNom());
+        }
+        return builder.build();
     }
 }

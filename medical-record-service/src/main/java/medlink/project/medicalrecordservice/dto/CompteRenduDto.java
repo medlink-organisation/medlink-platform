@@ -74,4 +74,6 @@ public class CompteRenduDto {
     private Boolean controleRequis;
     private String praticienNom;
     private String praticienPrenom;
+    private String specialiteNom;
+    private String cliniqueNom;
 }

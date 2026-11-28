@@ -27,7 +27,7 @@ public class AlertePraticienDelegate implements JavaDelegate {
                 "PRATICIEN",
                 "RENDEZ_VOUS_ANNULATION",
                 "Annulation d'un rendez-vous MedLink",
-                "Le rendez-vous n° " + execution.getVariable("rdvId") + " a été annulé.",
+                "Le rendez-vous prévu le " + execution.getVariable("dateRdv") + " a été annulé.",
                 recipient.email(),
                 true,
                 execution.getProcessInstanceId()
@@ -41,7 +41,7 @@ public class AlertePraticienDelegate implements JavaDelegate {
                     "PATIENT",
                     "RENDEZ_VOUS_ANNULATION",
                     "Rendez-vous annulé",
-                    "Votre rendez-vous n° " + execution.getVariable("rdvId") + " a été annulé.",
+                    "Votre rendez-vous prévu le " + execution.getVariable("dateRdv") + " a été annulé.",
                     patient.getEmail(),
                     true,
                     execution.getProcessInstanceId() + ":patient-annulation"

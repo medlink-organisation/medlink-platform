@@ -5,6 +5,7 @@ import medlink.project.medicalrecordservice.dto.DossierMedicalDto;
 import medlink.project.medicalrecordservice.dto.ResultatExamenDto;
 import medlink.project.medicalrecordservice.service.DownloadedDocument;
 import medlink.project.medicalrecordservice.service.MedicalRecordViewService;
+import medlink.project.medicalrecordservice.service.ResultatExamenService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.CacheControl;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class PractitionerMedicalRecordController {
 
     private final MedicalRecordViewService service;
+    private final ResultatExamenService resultatExamenService;
 
     @GetMapping
     public DossierMedicalDto getRecord(@PathVariable UUID rendezVousId) {
@@ -41,6 +43,14 @@ public class PractitionerMedicalRecordController {
             Pageable pageable
     ) {
         return service.getResultsForAppointment(rendezVousId, pageable);
+    }
+
+    @GetMapping("/exam-results/{resultatId}/download")
+    public ResponseEntity<StreamingResponseBody> downloadResult(
+            @PathVariable UUID rendezVousId,
+            @PathVariable UUID resultatId
+    ) {
+        return pdf(resultatExamenService.downloadForAppointment(rendezVousId, resultatId));
     }
 
     @GetMapping("/pdf")

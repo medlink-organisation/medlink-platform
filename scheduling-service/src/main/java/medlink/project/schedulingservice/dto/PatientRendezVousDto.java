@@ -10,6 +10,8 @@ public record PatientRendezVousDto(
         UUID id,
         Long creneauId,
         Long praticienId,
+        String praticienNom,
+        String praticienPrenom,
         Long cliniqueId,
         LocalDateTime dateDebut,
         LocalDateTime dateFin,

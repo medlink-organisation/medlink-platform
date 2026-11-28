@@ -73,4 +73,7 @@ public class ResultatExamenDto {
             message = "La date de publication est gérée par le système"
     )
     private LocalDateTime datePublication;
+    private String nomFichier;
+    private Long tailleOctets;
+    private String praticienNomComplet;
 }

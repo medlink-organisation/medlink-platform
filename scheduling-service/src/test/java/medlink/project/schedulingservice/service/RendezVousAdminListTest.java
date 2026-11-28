@@ -1,6 +1,8 @@
 package medlink.project.schedulingservice.service;
 
 import medlink.project.schedulingservice.dto.AdminRendezVousDto;
+import medlink.project.schedulingservice.dto.RendezVousAgendaDto;
+import medlink.project.schedulingservice.dto.PatientRendezVousDto;
 import medlink.project.schedulingservice.entities.Creneau;
 import medlink.project.schedulingservice.entities.RendezVous;
 import medlink.project.schedulingservice.entities.StatusRendezVous;
@@ -91,6 +93,72 @@ class RendezVousAdminListTest {
         });
         verify(patientIdentityService).getByBusinessIds(Set.of(patientId));
         verify(praticienIdentityService).getByIds(Set.of(56L));
+    }
+
+    @Test
+    void enrichitAgendaPraticienAvecIdentitePatientEtHoraireDuCreneau() {
+        long patientId = 4_303_278_309_522_443_300L;
+        LocalDateTime debut = LocalDateTime.of(2026, 11, 28, 10, 30);
+        LocalDateTime fin = debut.plusMinutes(30);
+        Creneau creneau = Creneau.builder()
+                .id(142L)
+                .praticienId(56L)
+                .cliniqueId(3L)
+                .dateDebut(debut)
+                .dateFin(fin)
+                .build();
+        RendezVous appointment = rendezVous(patientId, creneau, TypeRendezVous.CONSULTATION);
+
+        when(repository.findAgendaByPraticien(56L, debut.minusDays(1), fin.plusDays(1)))
+                .thenReturn(List.of(appointment));
+        when(patientIdentityService.getByBusinessIds(anyCollection()))
+                .thenReturn(Map.of(patientId,
+                        new PatientIdentityService.PatientIdentity(
+                                patientId, "Ben Ali", "Ahmed")));
+
+        List<RendezVousAgendaDto> result = service.getAgendaByPraticien(
+                56L, debut.minusDays(1), fin.plusDays(1));
+
+        assertThat(result).singleElement().satisfies(dto -> {
+            assertThat(dto.patientNom()).isEqualTo("Ben Ali");
+            assertThat(dto.patientPrenom()).isEqualTo("Ahmed");
+            assertThat(dto.dateDebut()).isEqualTo(debut);
+            assertThat(dto.dateFin()).isEqualTo(fin);
+        });
+        verify(patientIdentityService).getByBusinessIds(List.of(patientId));
+    }
+
+    @Test
+    void enrichitLesRendezVousPatientAvecLeNomDuPraticien() {
+        long patientId = 42L;
+        LocalDateTime debut = LocalDateTime.of(2026, 11, 28, 14, 0);
+        Creneau creneau = Creneau.builder()
+                .id(150L)
+                .praticienId(56L)
+                .cliniqueId(3L)
+                .dateDebut(debut)
+                .dateFin(debut.plusMinutes(30))
+                .build();
+        PageRequest pageable = PageRequest.of(0, 10);
+        when(repository.findAllByPatientId(patientId, pageable))
+                .thenReturn(new PageImpl<>(
+                        List.of(rendezVous(patientId, creneau, TypeRendezVous.CONSULTATION)),
+                        pageable,
+                        1
+                ));
+        when(praticienIdentityService.getByIds(anyCollection()))
+                .thenReturn(Map.of(56L,
+                        new PraticienIdentityService.PraticienIdentity(
+                                56L, "Trabelsi", "Mohamed")));
+
+        List<PatientRendezVousDto> result = service.getForPatient(patientId, pageable).getContent();
+
+        assertThat(result).singleElement().satisfies(dto -> {
+            assertThat(dto.praticienNom()).isEqualTo("Trabelsi");
+            assertThat(dto.praticienPrenom()).isEqualTo("Mohamed");
+            assertThat(dto.dateDebut()).isEqualTo(debut);
+        });
+        verify(praticienIdentityService).getByIds(List.of(56L));
     }
 
     private RendezVous rendezVous(

@@ -64,4 +64,5 @@ message PraticienGrpcResponse {
   string numero_ordre = 7;
   int64 specialite_id = 8;
   bool actif = 9;
+  string specialite_nom = 10;
 }

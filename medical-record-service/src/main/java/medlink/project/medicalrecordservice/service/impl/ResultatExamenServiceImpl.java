@@ -17,6 +17,8 @@ import medlink.project.medicalrecordservice.service.Sha256ChecksumService;
 import medlink.project.medicalrecordservice.storage.ObjectStorageService;
 import medlink.project.medicalrecordservice.validator.FileSecurityValidator;
 import medlink.project.medicalrecordservice.validator.ResultatExamenValidator;
+import medlink.grpc.auth.v1.AuthGrpcServiceGrpc;
+import medlink.grpc.auth.v1.GetUserContactRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import io.grpc.StatusRuntimeException;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +46,7 @@ public class ResultatExamenServiceImpl implements ResultatExamenService {
     private final ResultatExamenPersistenceService persistenceService;
     private final AuthenticatedUserService authenticatedUserService;
     private final MedicalRecordAccessService accessService;
+    private final AuthGrpcServiceGrpc.AuthGrpcServiceBlockingStub authStub;
 
     @Override
     public ResultatExamenDto uploadResultat(
@@ -90,7 +95,7 @@ public class ResultatExamenServiceImpl implements ResultatExamenService {
         authenticatedUserService.requireAuthenticatedJwt();
         ResultatExamen result = validator.requireExists(id);
         accessService.checkCanRead(result.getDossierMedical().getId());
-        return mapper.toDto(result);
+        return toDto(result);
     }
 
     @Override
@@ -99,7 +104,7 @@ public class ResultatExamenServiceImpl implements ResultatExamenService {
         authenticatedUserService.requireAuthenticatedJwt();
         accessService.checkCanRead(dossierId);
         validator.validateDossierExists(dossierId);
-        return repository.findByDossierMedicalId(dossierId, pageable).map(mapper::toDto);
+        return repository.findByDossierMedicalId(dossierId, pageable).map(this::toDto);
     }
 
     @Override
@@ -108,6 +113,24 @@ public class ResultatExamenServiceImpl implements ResultatExamenService {
         authenticatedUserService.requireAuthenticatedJwt();
         ResultatExamen result = validator.requireExists(id);
         accessService.checkCanRead(result.getDossierMedical().getId());
+        return downloadDocument(result);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DownloadedDocument downloadForAppointment(UUID rendezVousId, UUID id) {
+        authenticatedUserService.requireAuthenticatedJwt();
+        Long authorizedDossierId = accessService.requireRecordIdForAppointment(rendezVousId);
+        ResultatExamen result = validator.requireExists(id);
+        if (!authorizedDossierId.equals(result.getDossierMedical().getId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Accès au résultat d'examen refusé."
+            );
+        }
+        return downloadDocument(result);
+    }
+
+    private DownloadedDocument downloadDocument(ResultatExamen result) {
         if (result.getDocument() == null) {
             throw new BusinessValidationException("Aucun PDF n'est associé à ce résultat d'examen.");
         }
@@ -155,5 +178,24 @@ public class ResultatExamenServiceImpl implements ResultatExamenService {
 
     private String normalizeConclusion(String conclusion) {
         return conclusion == null || conclusion.isBlank() ? null : conclusion.trim();
+    }
+
+    private ResultatExamenDto toDto(ResultatExamen result) {
+        ResultatExamenDto dto = mapper.toDto(result);
+        String author = result.getDocument() == null ? null : result.getDocument().getCreatedBy();
+        if (author != null && !author.isBlank() && !"SYSTEM".equals(author)) {
+            try {
+                var contact = authStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+                        .getUserContact(GetUserContactRequest.newBuilder()
+                                .setKeycloakId(author)
+                                .build());
+                if (!contact.getDisplayName().isBlank()) {
+                    dto.setPraticienNomComplet(contact.getDisplayName());
+                }
+            } catch (StatusRuntimeException ignored) {
+                // Les métadonnées du résultat restent consultables si l'annuaire est indisponible.
+            }
+        }
+        return dto;
     }
 }

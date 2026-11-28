@@ -3,6 +3,7 @@ package medlink.project.medicalrecordservice.config;
 import medlink.grpc.praticien.v1.PraticienGrpcServiceGrpc;
 import medlink.grpc.rendezvous.v1.RendezVousGrpcServiceGrpc;
 import medlink.grpc.auth.v1.AuthGrpcServiceGrpc;
+import medlink.grpc.directory.v1.DirectoryGrpcServiceGrpc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.grpc.client.GrpcChannelFactory;
@@ -34,6 +35,15 @@ public class MedicalGrpcClientConfiguration {
     ) {
         return AuthGrpcServiceGrpc.newBlockingStub(
                 channelFactory.createChannel("auth-service")
+        );
+    }
+
+    @Bean
+    DirectoryGrpcServiceGrpc.DirectoryGrpcServiceBlockingStub directoryStub(
+            GrpcChannelFactory channelFactory
+    ) {
+        return DirectoryGrpcServiceGrpc.newBlockingStub(
+                channelFactory.createChannel("directory-service")
         );
     }
 }

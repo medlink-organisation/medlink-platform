@@ -9,6 +9,8 @@ import java.util.UUID;
 public record RendezVousAgendaDto(
         UUID id,
         String patientId,
+        String patientNom,
+        String patientPrenom,
         Long praticienId,
         Long cliniqueId,
         Long creneauId,

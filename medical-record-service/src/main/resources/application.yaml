@@ -19,6 +19,8 @@ spring:
           target: ${SCHEDULING_GRPC_TARGET:static://localhost:9093}
         auth-service:
           target: ${AUTH_GRPC_TARGET:static://localhost:9091}
+        directory-service:
+          target: ${DIRECTORY_GRPC_TARGET:static://localhost:9096}
 
   cloud:
     vault:
@@ -48,3 +50,5 @@ spring:
           target: ${SCHEDULING_GRPC_TARGET:static://scheduling-service:9093}
         auth-service:
           target: ${AUTH_GRPC_TARGET:static://auth-service:9091}
+        directory-service:
+          target: ${DIRECTORY_GRPC_TARGET:static://directory-service:9096}

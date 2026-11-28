@@ -8,6 +8,7 @@ import org.mapstruct.*;
 public interface PraticienMapper {
 
     @Mapping(target = "specialiteId", source = "specialite.id")
+    @Mapping(target = "specialiteNom", source = "specialite.nom")
     PraticienDto toDto(Praticien entity);
 
     @Mapping(target = "specialite", ignore = true)

@@ -64,10 +64,8 @@ class BookingSlotSecurityTest {
     @Test
     void patientReadsAvailableSlotsOnly() throws Exception {
         LocalDateTime start = LocalDateTime.now().plusDays(2);
-        when(creneauService.getCalendar(eq(2L), eq(3L), any(), any()))
-                .thenReturn(List.of(
-                        slot(10L, start, StatutCreneau.DISPONIBLE),
-                        slot(11L, start.plusHours(1), StatutCreneau.RESERVE)));
+        when(creneauService.getAvailableForBooking(eq(2L), eq(3L), any(), any()))
+                .thenReturn(List.of(slot(10L, start, StatutCreneau.DISPONIBLE)));
 
         mockMvc.perform(get("/creneaux/booking/available")
                         .param("praticienId", "2")
@@ -78,7 +76,7 @@ class BookingSlotSecurityTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(10))
                 .andExpect(jsonPath("$[1]").doesNotExist())
-                .andExpect(jsonPath("$[0].statut").doesNotExist());
+                .andExpect(jsonPath("$[0].statut").value("DISPONIBLE"));
     }
 
     @Test
@@ -115,6 +113,8 @@ class BookingSlotSecurityTest {
                         UUID.randomUUID(),
                         10L,
                         2L,
+                        "Trabelsi",
+                        "Mohamed",
                         3L,
                         start,
                         start.plusMinutes(30),

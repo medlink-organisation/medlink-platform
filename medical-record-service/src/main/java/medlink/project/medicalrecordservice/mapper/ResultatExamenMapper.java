@@ -18,6 +18,9 @@ public interface ResultatExamenMapper {
 
     @Mapping(source = "dossierMedical.id", target = "dossierMedicalId")
     @Mapping(source = "document.id", target = "documentMedicalId")
+    @Mapping(source = "document.nomFichier", target = "nomFichier")
+    @Mapping(source = "document.tailleOctets", target = "tailleOctets")
+    @Mapping(target = "praticienNomComplet", ignore = true)
     ResultatExamenDto toDto(ResultatExamen entity);
 
     @Mapping(target = "id", ignore = true)

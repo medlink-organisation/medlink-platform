@@ -21,6 +21,8 @@ public interface CompteRenduMapper {
     @Mapping(source = "praticienBusinessId", target = "praticienId")
     @Mapping(target = "praticienNom", ignore = true)
     @Mapping(target = "praticienPrenom", ignore = true)
+    @Mapping(target = "specialiteNom", ignore = true)
+    @Mapping(target = "cliniqueNom", ignore = true)
     CompteRenduDto toDto(CompteRendu entity);
 
     @Mapping(target = "id", ignore = true)

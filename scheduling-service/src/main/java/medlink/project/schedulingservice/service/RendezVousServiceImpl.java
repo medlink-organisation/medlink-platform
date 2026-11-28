@@ -102,8 +102,16 @@ public class RendezVousServiceImpl implements RendezVousService {
 
     @Override
     public Page<PatientRendezVousDto> getForPatient(Long patientId, Pageable pageable) {
-        return repository.findAllByPatientId(patientId, pageable)
-                .map(this::toPatientDto);
+        Page<RendezVous> rendezVousPage = repository.findAllByPatientId(patientId, pageable);
+        Map<Long, PraticienIdentityService.PraticienIdentity> praticiens = praticienIdentityService
+                .getByIds(rendezVousPage.stream()
+                        .map(RendezVous::getCreneau)
+                        .map(Creneau::getPraticienId)
+                        .toList());
+        return rendezVousPage.map(rendezVous -> toPatientDto(
+                rendezVous,
+                praticiens.get(rendezVous.getCreneau().getPraticienId())
+        ));
     }
 
     @Override
@@ -118,10 +126,7 @@ public class RendezVousServiceImpl implements RendezVousService {
             LocalDateTime fin
     ) {
         validateAgendaRange(debut, fin);
-        return repository.findAgendaByPraticien(praticienId, debut, fin)
-                .stream()
-                .map(this::toAgendaDto)
-                .toList();
+        return toAgendaDtos(repository.findAgendaByPraticien(praticienId, debut, fin));
     }
 
     @Override
@@ -137,14 +142,12 @@ public class RendezVousServiceImpl implements RendezVousService {
             );
         }
         LocalDateTime now = LocalDateTime.now();
-        return repository.findDueByPraticien(
+        return toAgendaDtos(repository.findDueByPraticien(
                         praticienId,
                         List.of(StatusRendezVous.CONFIRME),
                         now.minusMinutes(minutesAfter),
                         now.plusMinutes(minutesBefore)
-                ).stream()
-                .map(this::toAgendaDto)
-                .toList();
+                ));
     }
 
     @Override
@@ -294,11 +297,24 @@ public class RendezVousServiceImpl implements RendezVousService {
         }
     }
 
-    private RendezVousAgendaDto toAgendaDto(RendezVous rendezVous) {
+    private List<RendezVousAgendaDto> toAgendaDtos(List<RendezVous> rendezVous) {
+        Map<Long, PatientIdentityService.PatientIdentity> patients = patientIdentityService
+                .getByBusinessIds(rendezVous.stream().map(RendezVous::getPatientId).toList());
+        return rendezVous.stream()
+                .map(item -> toAgendaDto(item, patients.get(item.getPatientId())))
+                .toList();
+    }
+
+    private RendezVousAgendaDto toAgendaDto(
+            RendezVous rendezVous,
+            PatientIdentityService.PatientIdentity patient
+    ) {
         Creneau creneau = rendezVous.getCreneau();
         return new RendezVousAgendaDto(
                 rendezVous.getId(),
                 rendezVous.getPatientId().toString(),
+                patient == null ? "" : patient.nom(),
+                patient == null ? "" : patient.prenom(),
                 creneau.getPraticienId(),
                 creneau.getCliniqueId(),
                 creneau.getId(),
@@ -309,12 +325,17 @@ public class RendezVousServiceImpl implements RendezVousService {
         );
     }
 
-    private PatientRendezVousDto toPatientDto(RendezVous rendezVous) {
+    private PatientRendezVousDto toPatientDto(
+            RendezVous rendezVous,
+            PraticienIdentityService.PraticienIdentity praticien
+    ) {
         Creneau creneau = rendezVous.getCreneau();
         return new PatientRendezVousDto(
                 rendezVous.getId(),
                 creneau.getId(),
                 creneau.getPraticienId(),
+                praticien == null ? "" : praticien.nom(),
+                praticien == null ? "" : praticien.prenom(),
                 creneau.getCliniqueId(),
                 creneau.getDateDebut(),
                 creneau.getDateFin(),

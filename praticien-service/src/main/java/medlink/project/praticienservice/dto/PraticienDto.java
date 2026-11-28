@@ -71,4 +71,6 @@ public class PraticienDto {
             groups = OnCreate.class
     )
     private Long specialiteId;
+
+    private String specialiteNom;
 }
